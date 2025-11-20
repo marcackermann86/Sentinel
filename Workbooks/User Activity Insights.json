@@ -1,0 +1,930 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "a5b4cf10-c33c-4095-8a3a-24115853e0a9",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time Range",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "value": {
+              "durationMs": 2592000000
+            }
+          },
+          {
+            "id": "2a170352-fb9a-4bd5-bc27-420936b59d36",
+            "version": "KqlParameterItem/1.0",
+            "name": "User",
+            "type": 2,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| summarize arg_max(TimeGenerated, *) by AccountObjectId\r\n| project value = AccountUPN, label = strcat(AccountUPN, \" (\", iff(IsAccountEnabled, \"Enabled\", \"Disabled\"), \")\")\r\n| sort by value asc\r\n",
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "showDefault": false
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": "mackermann@accesspointconsulting.com"
+          },
+          {
+            "id": "a48f24ff-6b04-4494-84dc-a601d6bdc636",
+            "version": "KqlParameterItem/1.0",
+            "name": "AccountName",
+            "type": 1,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| project AccountName = coalesce(AccountName, \"undefined\")",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "a6e82d37-0871-40a4-b374-7f2c0ddae81b",
+            "version": "KqlParameterItem/1.0",
+            "name": "AccountUpnSuffix",
+            "type": 1,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| project AccountUpnSuffix = tostring(split(AccountUPN, \"@\")[1])",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "32f59fbd-a6c7-415b-ad23-00d5b39d9e73",
+            "version": "KqlParameterItem/1.0",
+            "name": "AccountObjectId",
+            "type": 1,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| project AccountObjectId = coalesce(AccountObjectId, \"undefined\")",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "a3fc51e5-8948-402f-8910-445382dba1b3",
+            "version": "KqlParameterItem/1.0",
+            "name": "AccountSID",
+            "type": 1,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| project AccountSID = coalesce(AccountSID, \"undefined\")",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "a5ca6d78-9e34-4593-ab12-143df991b2e5",
+            "version": "KqlParameterItem/1.0",
+            "name": "AccountDomain",
+            "type": 1,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| project AccountDomain = coalesce(AccountDomain, \"undefined\")",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "f799a707-014f-4e79-9284-98e3ad46b2b6",
+            "version": "KqlParameterItem/1.0",
+            "name": "AccountTenantId",
+            "type": 1,
+            "isRequired": true,
+            "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| project AccountTenantId = coalesce(TenantId, \"undefined\")",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "ce77082b-e8d3-4cad-a60c-358c1b008075",
+            "version": "KqlParameterItem/1.0",
+            "name": "RecentDevice",
+            "type": 1,
+            "query": "union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}'\r\n| extend DeviceDetail = todynamic(coalesce(DeviceDetail_dynamic, DeviceDetail_string))\r\n| extend DeviceName = tostring(DeviceDetail.displayName)\r\n| summarize max(TimeGenerated) by DeviceName\r\n| where isnotempty(DeviceName)\r\n| distinct DeviceName",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 0"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let LoginEvents = materialize(union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n    | where TimeGenerated between ({TimeRange:start} .. {TimeRange:end})\r\n    | where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}');\r\nIdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| where AccountUPN =~ '{User}'\r\n| summarize arg_max(TimeGenerated, *)\r\n| join kind=leftouter (LoginEvents\r\n    | summarize LastSuccessfulInteractiveSignin=maxif(TimeGenerated, ResultType == 0 and Type == 'SigninLogs'),\r\n                LastSuccessfulNonInteractiveSignin=maxif(TimeGenerated, ResultType == 0 and Type == 'AADNonInteractiveUserSignInLogs'),\r\n                LastFailedInteractiveSignin=maxif(TimeGenerated, ResultType != 0 and Type == 'SigninLogs'),\r\n                LastFailedNonInteractiveSignin=maxif(TimeGenerated, ResultType != 0 and Type == 'AADNonInteractiveUserSignInLogs'),\r\n                CountSuccessfulInteractiveSignin=dcountif(CorrelationId, ResultType == 0 and Type == 'SigninLogs'),\r\n                CountSuccessfulNonInteractiveSignin=dcountif(CorrelationId, ResultType == 0 and Type == 'AADNonInteractiveUserSignInLogs'),\r\n                CountFailedInteractiveSignin=dcountif(CorrelationId, ResultType != 0 and Type == 'SigninLogs'),\r\n                CountFailedNonInteractiveSignin=dcountif(CorrelationId, ResultType != 0 and Type == 'AADNonInteractiveUserSignInLogs')  by UserId)\r\n    on $left.AccountObjectId == $right.UserId\r\n| extend DeviceName = tolower('{RecentDevice}')\r\n| join kind=leftouter (DeviceInfo\r\n| where TimeGenerated >= ago(7d)\r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| extend MaxmindDeviceLocaion = geo_info_from_ip_address(PublicIP)\r\n| extend DeviceLocation = strcat(tostring(coalesce(MaxmindDeviceLocaion.city, 'Unknown city')), ', ', tostring(coalesce(MaxmindDeviceLocaion.state, 'Unknown state')))\r\n| project DeviceName=tolower(DeviceName), DeviceIP=PublicIP, DeviceLocation) on DeviceName\r\n| project MarkdownDetails = strcat(\"<h1>\", AccountDisplayName, \"</h1>General Info<br><ul><li>Company:&nbsp;\", CompanyName, \"<br><li>Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\", JobTitle, \"<br><li>Manager:&nbsp;&nbsp;\", Manager, \"</ul>Most Recent Device Info<br><ul>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{RecentDevice}<br>IP Address: \", DeviceIP, \"<br>Location:&nbsp;&nbsp;&nbsp;&nbsp;\", DeviceLocation,\"</ul>User Stats - {TimeRange:label}<br><ul>Successful Logins<ul><li>Last Interactive:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\", format_datetime(datetime_utc_to_local(LastSuccessfulInteractiveSignin, 'US/Eastern'),'M-d-yyyy hh:mm tt'), \" EST<li>Last Non-Interactive:&nbsp;&nbsp;\", format_datetime(datetime_utc_to_local(LastSuccessfulNonInteractiveSignin, 'US/Eastern'),'M-d-yyyy hh:mm tt'), \" EST</ul></ul><ul>Failed Logins<ul><li>Last Interactive:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\", format_datetime(datetime_utc_to_local(LastFailedInteractiveSignin, 'US/Eastern'),'M-d-yyyy hh:mm tt'), \" EST<li>Last Non-Interactive:&nbsp;&nbsp;\", format_datetime(datetime_utc_to_local(LastFailedNonInteractiveSignin, 'US/Eastern'),'M-d-yyyy hh:mm tt'), \" EST</ul></ul><ul>\")\r\n\r\n\r\n",
+        "size": 0,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "card",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "AccountDisplayName",
+            "formatter": 1
+          },
+          "subtitleContent": {
+            "columnMatch": "CompanyName",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "JobTitle",
+            "formatter": 1
+          },
+          "secondaryContent": {
+            "columnMatch": "Manager"
+          },
+          "showBorder": false,
+          "size": "auto"
+        },
+        "textSettings": {
+          "style": "markdown"
+        }
+      },
+      "customWidth": "40",
+      "name": "query - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let LoginEvents = materialize(union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n    | where TimeGenerated between ({TimeRange:start} .. {TimeRange:end})\r\n    | where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}');\r\nLoginEvents\r\n| summarize arg_max(TimeGenerated, *) by CorrelationId\r\n| where not(ipv6_is_in_any_range(IPAddress, \"FD00::/7\"))\r\n| extend LocationDetails = todynamic(coalesce(LocationDetails_dynamic, LocationDetails_string)),\r\n         MaxmindLocation = geo_info_from_ip_address(IPAddress)\r\n| extend Latitude = tostring(MaxmindLocation.latitude)\r\n| extend Longitude = tostring(MaxmindLocation.longitude)\r\n| extend LocationByMaxMind = strcat(tostring(coalesce(MaxmindLocation.city, LocationDetails.city)), ', ', tostring(MaxmindLocation.state))\r\n| summarize count() by Latitude, Longitude, LocationByMaxMind",
+        "size": 0,
+        "title": "Sign-in Map (Maxmind Geolocation)",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "map",
+        "mapSettings": {
+          "locInfo": "LatLong",
+          "locInfoColumn": "MaxmindLocaion",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "sizeSettings": "count_",
+          "sizeAggregation": "Sum",
+          "labelSettings": "LocationByMaxMind",
+          "legendMetric": "count_",
+          "numberOfMetrics": 20,
+          "legendAggregation": "Sum",
+          "itemColorSettings": {
+            "nodeColorField": "count_",
+            "colorAggregation": "Sum",
+            "type": "heatmap",
+            "heatmapPalette": "redGreen"
+          }
+        }
+      },
+      "customWidth": "60",
+      "name": "SigninMap"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let RecentDevice = iff(isempty('{RecentDevice}'), \"No device found\", '{RecentDevice}');\r\nSecurityAlert\r\n| where Entities contains '{AccountName}' or Entities contains RecentDevice\r\n| project SystemAlertId\r\n| join kind=inner (SecurityIncident | summarize arg_max(TimeGenerated, *) by IncidentNumber | mv-expand AlertIds to typeof(string)) on $left.SystemAlertId  == $right.AlertIds\r\n| project TimeGenerated, IncidentNumber, Title, Severity, Status, CreatedTime, FirstModifiedTime, ClosedTime, Classification, ClassificationComment\r\n| summarize arg_max(TimeGenerated, *) by IncidentNumber",
+        "size": 0,
+        "title": "Sentinel Incidents",
+        "noDataMessage": "No Sentinel incidents found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "SentinelIncidents",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AADUserRiskEvents\r\n| summarize arg_max(TimeGenerated, *) by CorrelationId\r\n| where UserId == '{AccountObjectId}'\r\n| extend DetectedDateTime = coalesce(DetectedDateTime, TimeGenerated),\r\n         ActivityDateTime = coalesce(ActivityDateTime, TimeGenerated),\r\n         MaxmindLocation = geo_info_from_ip_address(IpAddress)\r\n| extend LocationByMicrosoft = strcat(tostring(coalesce(Location.city, 'Unknown city')), ', ', tostring(coalesce(Location.state, 'Unknown state')), iff(isempty(Location.state) or Location.countryOrRegion != 'US', strcat(\", \", Location.countryOrRegion), \"\")),\r\n         LocationByMaxMind = strcat(tostring(coalesce(MaxmindLocation.city, 'Unknown city')), ', ', tostring(coalesce(MaxmindLocation.state, 'Unknown state')), iff(isempty(MaxmindLocation.state) or MaxmindLocation.country != 'United States', strcat(\", \", MaxmindLocation.country), \"\"))\r\n| project UserDisplayName, ActivityDateTime, DetectedDateTime, Activity, RiskLevel, RiskState, RiskEventType, RiskDetail, IpAddress, LocationByMicrosoft, LocationByMaxMind, AdditionalInfo, DetectionTimingType\r\n| mv-apply AdditionalInfo on (summarize ParsedAdditionalInfo = make_bag(pack(tostring(AdditionalInfo.Key), AdditionalInfo.Value)))\r\n| evaluate bag_unpack(ParsedAdditionalInfo)",
+        "size": 0,
+        "title": "Entra User Risk Detections",
+        "noDataMessage": "No risk detections found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "RiskEvents",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "<h3>Select a PIM session below to filter the following activity logs to show only activity that occurred during the PIM session. Use the reset arrow button on the right to view the full results again.</h3>",
+        "style": "upsell"
+      },
+      "name": "text - 31"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let AuditLogs_mat = materialize (AuditLogs);\r\nlet PimSessions = (AuditLogs_mat\r\n| where OperationName == \"Add member to role completed (PIM activation)\"\r\n| extend AzureRole = tostring(TargetResources[0].displayName)\r\n| where AzureRole contains \"Admin\"\r\n| mv-apply TargetResources to typeof(dynamic) on (\r\n    where tostring(TargetResources.type) == 'User'\r\n    | extend User = tostring(TargetResources.userPrincipalName))\r\n| extend User = tolower(tostring(coalesce(User, parse_json(tostring(InitiatedBy.user)).userPrincipalName)))\r\n| where User =~ '{User}'\r\n| mv-apply AdditionalDetail = AdditionalDetails on (\r\n    summarize AdditionalDetails = make_bag(bag_pack(tostring(AdditionalDetail.key), AdditionalDetail.value))) \r\n| evaluate bag_unpack(AdditionalDetails, columnsConflict='replace_source')\r\n| extend TicketSystem = column_ifexists(\"TicketSystem\", ''),\r\n        TicketNumber = column_ifexists(\"TicketNumber\", '')\r\n| project PimStart=TimeGenerated, User, AzureRole, CorrelationId, ResultReason=coalesce(ResultReason, ResultDescription), TicketSystem, TicketNumber\r\n| join kind=leftouter (AuditLogs_mat\r\n| where OperationName == \"Remove member from role (PIM activation expired)\"\r\n| extend AzureRole = tostring(TargetResources[0].displayName)\r\n| where AzureRole contains \"Admin\"\r\n| mv-apply TargetResources to typeof(dynamic) on (\r\n    where tostring(TargetResources.type) == 'User'\r\n    | extend User = tostring(TargetResources.userPrincipalName))\r\n| extend User = tolower(tostring(coalesce(User, parse_json(tostring(InitiatedBy.user)).userPrincipalName)))\r\n| project PimEnd=TimeGenerated, User, AzureRole, CorrelationId) on CorrelationId, AzureRole\r\n| extend PimEnd=coalesce(PimEnd, datetime(null))\r\n| project User = strcat('👤', User), AzureRole, PimStart, PimEnd, TicketSystem, TicketNumber, ResultReason);\r\nPimSessions",
+        "size": 0,
+        "title": "Admin PIM Activations",
+        "noDataMessage": "No admin PIM activations found",
+        "noDataMessageStyle": 3,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "exportedParameters": [
+          {
+            "fieldName": "PimStart",
+            "parameterName": "PimStart",
+            "parameterType": 1,
+            "defaultValue": "*"
+          },
+          {
+            "fieldName": "PimEnd",
+            "parameterName": "PimEnd",
+            "parameterType": 1,
+            "defaultValue": "*"
+          }
+        ],
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "ResultReason",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "100ch"
+              }
+            },
+            {
+              "columnMatch": "OperationName",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ResultDescription",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Resource",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ParentId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "RowId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Type",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "AADTenantId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Id",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "DurationMs",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Level",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "OperationVersion",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ResourceGroup",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ResourceId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ResultSignature",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "SourceSystem",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "TenantId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "TimeGenerated",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 500
+        },
+        "sortBy": []
+      },
+      "name": "AdminPim",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let LoginEvents = materialize(union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n    | where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n    | where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}');\r\nLoginEvents\r\n| where Location == \"US\"\r\n| extend LocationDetails = todynamic(coalesce(LocationDetails_dynamic, LocationDetails_string)),\r\n         MaxmindLocation = geo_info_from_ip_address(IPAddress)\r\n| extend LocationByMicrosoft = strcat(tostring(LocationDetails.city), ', ', tostring(LocationDetails.state)),\r\n         LocationByMaxMind = strcat(tostring(coalesce(MaxmindLocation.city, 'Unknown city')), ', ', tostring(coalesce(MaxmindLocation.state, 'Unknown state')))\r\n| summarize Count=dcount(CorrelationId) by ['IP Address']=IPAddress, ['Microsoft Geolocation']=LocationByMicrosoft, ['Maxmind Geolocation']=LocationByMaxMind\r\n| sort by Count desc",
+        "size": 0,
+        "title": "United States Sign-in Geolocation",
+        "noDataMessage": "No US sign-ins found",
+        "noDataMessageStyle": 2,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "redGreen"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "50",
+      "name": "UsSigninGeolocation",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let LoginEvents = materialize(union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n    | where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n    | where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}');\r\nLoginEvents\r\n| where Location <> \"US\" and isnotempty(Location)\r\n| extend LocationDetails = todynamic(coalesce(LocationDetails_dynamic, LocationDetails_string)),\r\n         MaxmindLocation = geo_info_from_ip_address(IPAddress)\r\n| extend LocationByMicrosoft = strcat(tostring(LocationDetails.city), ', ', tostring(LocationDetails.state)),\r\n         LocationByMaxMind = strcat(tostring(MaxmindLocation.city), ', ', tostring(MaxmindLocation.state))\r\n| summarize Count=dcount(CorrelationId) by ['IP Address']=IPAddress, ['Microsoft Geolocation']=LocationByMicrosoft, ['Maxmind Geolocation']=LocationByMaxMind\r\n| sort by Count desc",
+        "size": 0,
+        "title": "International Sign-in Geolocation",
+        "noDataMessage": "No international sign-ins found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "NotUsSigninGeolocation",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let LoginEvents = materialize(union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n    | where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n    | where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}');\r\nLoginEvents\r\n| where isempty(Location) and not(ipv6_is_in_any_range(IPAddress, \"FD00::/7\"))\r\n| extend MaxmindLocation = geo_info_from_ip_address(IPAddress)\r\n| extend LocationByMaxMind = strcat(tostring(MaxmindLocation.city), ', ', tostring(MaxmindLocation.state))\r\n| summarize Count=dcount(CorrelationId) by ['IP Address']=IPAddress, ['Maxmind Geolocation']=LocationByMaxMind\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Sign-ins Missing Microsoft Geolocation",
+        "noDataMessage": "No missing geolocations found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "redGreen"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "33",
+      "name": "MissingSigninGeolocation",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}'\r\n| extend DeviceDetail = todynamic(coalesce(DeviceDetail_dynamic, DeviceDetail_string))\r\n| evaluate bag_unpack(DeviceDetail, \"DeviceDetail_\")\r\n| extend DeviceName = coalesce(column_ifexists(\"DeviceDetail_displayName\", \"\"), \"Unknown/Not Entra joined\")\r\n| summarize ['Login Count']=dcount(CorrelationId) by ['Device Name'] = DeviceName",
+        "size": 0,
+        "title": "Login Count by Device - Interactive & Non-Interactive",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Device Name",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "90%"
+              }
+            },
+            {
+              "columnMatch": "Login Count",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "10%"
+              }
+            }
+          ]
+        },
+        "sortBy": []
+      },
+      "customWidth": "33",
+      "name": "DeviceLogins",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "union isfuzzy=true SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where UserId == '{AccountObjectId}' or UserPrincipalName =~ '{User}'\r\n| extend DeviceDetail = todynamic(coalesce(DeviceDetail_dynamic, DeviceDetail_string))\r\n| evaluate bag_unpack(DeviceDetail, \"DeviceDetail_\")\r\n| extend DeviceName = coalesce(column_ifexists(\"DeviceDetail_displayName\", \"\"), \"Unknown/Not Entra joined\")\r\n| summarize LoginCount=dcount(CorrelationId) by AppDisplayName\r\n| sort by LoginCount desc",
+        "size": 0,
+        "title": "Login Count by App - Interactive & Non-Interactive",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "AppDisplayName",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "90%"
+              }
+            },
+            {
+              "columnMatch": "LoginCount",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue",
+                "customColumnWidthSetting": "10%"
+              }
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "AppDisplayName",
+              "label": "App Name"
+            },
+            {
+              "columnId": "LoginCount",
+              "label": "Login Count"
+            }
+          ]
+        },
+        "sortBy": []
+      },
+      "customWidth": "33",
+      "name": "AppLogins",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where OperationName !contains 'PIM'\r\n| extend User = tolower(tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)),\r\n        UserId = tolower(tostring(parse_json(tostring(InitiatedBy.user)).id))\r\n| where User =~ '{User}' or UserId == '{AccountObjectId}'\r\n| project ActivityDateTime, OperationName, Category, Result, ResultDescription, TargetResources, AdditionalDetails",
+        "size": 0,
+        "title": "Azure Audit Log Activity",
+        "noDataMessage": "No Azure audit log activity",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "AuditLogs",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where Caller =~ '{User}' or Caller == '{AccountObjectId}'\r\n| project Operation=OperationNameValue, Category=CategoryValue, Status=ActivityStatusValue, IpAddess=CallerIpAddress, ResourceProvider, ResourceId",
+        "size": 0,
+        "title": "Azure Activity",
+        "noDataMessage": "No Azure activity",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "AzureActivity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "OfficeActivity\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where UserId =~ '{User}' or UserKey == '{AccountObjectId}'\r\n| summarize Count=count() by OfficeWorkload, Operation, bin(TimeGenerated, iff('{PimStart}' == '*', {TimeRange:grain}, 30m))\r\n| sort by Count desc",
+        "size": 0,
+        "title": "O365 Activity",
+        "noDataMessage": "No O365 activity found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "name": "O365Activity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "OfficeActivity\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where OfficeWorkload == 'MicrosoftTeams'\r\n| where UserId =~ '{User}' or UserKey == '{AccountObjectId}'\r\n| summarize Count=count() by Operation\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Teams Activity",
+        "noDataMessage": "No Teams activity found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "25",
+      "name": "TeamActivity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "OfficeActivity\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where OfficeWorkload == 'OneDrive'\r\n| where UserId =~ '{User}' or UserKey == '{AccountObjectId}'\r\n| summarize Count=count() by Operation\r\n| sort by Count desc",
+        "size": 0,
+        "title": "OneDrive Activity",
+        "noDataMessage": "No OneDrive activity found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "25",
+      "name": "OneDriveActivity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "OfficeActivity\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where OfficeWorkload == 'SharePoint'\r\n| where UserId =~ '{User}' or UserKey == '{AccountObjectId}'\r\n| summarize Count=count() by Operation\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Sharepoint Activity",
+        "noDataMessage": "No Sharepoint activity found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "25",
+      "name": "SharepointActivity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "OfficeActivity\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where OfficeWorkload == 'Exchange'\r\n| where UserId =~ '{User}' or UserKey == '{AccountObjectId}'\r\n| summarize Count=count() by Operation\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Exchange Activity",
+        "noDataMessage": "No Exchnage activity found",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "25",
+      "name": "ExchangeActivity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "EmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}' or RecipientEmailAddress =~ '{User}'\r\n| where RecipientEmailAddress !in~ ('corespecialty.com@journaling.continuity-us2.proofpoint.com', 'journal@corespecialty.us2.proofpointarchiving.net', '8249dc3eca52a56c4407@us1.azure.antigena.com')\r\n| summarize ExternalInbound=countif(RecipientEmailAddress =~ '{User}' and SenderFromDomain !~ '{AccountUpnSuffix}' and SenderMailFromDomain !~ '{AccountUpnSuffix}'),\r\n            InternalInbound=countif(RecipientEmailAddress =~ '{User}' and SenderFromDomain =~ '{AccountUpnSuffix}' and SenderMailFromDomain =~ '{AccountUpnSuffix}'),\r\n            ExternalOutbound=countif((SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}') and tostring(split(RecipientEmailAddress, '@')[-1]) !~ '{AccountUpnSuffix}'),\r\n            InternalOutbound=countif((SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}') and tostring(split(RecipientEmailAddress, '@')[-1]) =~ '{AccountUpnSuffix}')\r\n        by bin(TimeGenerated, iff('{PimStart}' == '*', {TimeRange:grain}, 30m))",
+        "size": 0,
+        "title": "Email - Sent vs Received",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart",
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "ExternalInbound",
+              "label": "Received - External"
+            },
+            {
+              "seriesName": "InternalInbound",
+              "label": "Received - Internal"
+            },
+            {
+              "seriesName": "ExternalOutbound",
+              "label": "Sent - External"
+            },
+            {
+              "seriesName": "InternalOutbound",
+              "label": "Sent - Internal"
+            }
+          ]
+        }
+      },
+      "name": "EmailOverTime",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "EmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}'\r\n| where RecipientEmailAddress !in~ ('corespecialty.com@journaling.continuity-us2.proofpoint.com', 'journal@corespecialty.us2.proofpointarchiving.net', '8249dc3eca52a56c4407@us1.azure.antigena.com')\r\n| summarize Count=count() by Recipient=RecipientEmailAddress\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Defender - Email - Recipients",
+        "noDataMessage": "No email recipients found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "33",
+      "name": "EmailRecipients",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "EmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where RecipientEmailAddress =~ '{User}'\r\n| where isnotempty(SenderMailFromAddress)\r\n| summarize Count=count() by ['Envelope Sender']=SenderMailFromAddress\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Defender - Email - Envelope Senders",
+        "noDataMessage": "No email senders found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        },
+        "sortBy": []
+      },
+      "customWidth": "33",
+      "name": "EmailEnvelopeSenders",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "EmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where RecipientEmailAddress =~ '{User}'\r\n| summarize Count=count() by Sender=SenderFromAddress\r\n| sort by Count desc",
+        "size": 0,
+        "title": "Defender - Email - Senders",
+        "noDataMessage": "No email senders found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "33",
+      "name": "EmailSenders",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let FREEMAIL = dynamic([\"gmail.com\", \"hotmail.com\", \"live.com\", \"aol.com\", \"comcast.net\", \"yahoo.com\", \"mail.com\", \"proton.me\", \"protonmail.com\", \"outlook.com\", \"icloud.com\", \"me.com\"]);\r\nEmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where ((SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}') and tolower(RecipientEmailAddress) has_any (FREEMAIL)) or ((tolower(SenderFromAddress) has_any (FREEMAIL) or tolower(SenderMailFromAddress) has_any (FREEMAIL)) and RecipientEmailAddress =~ '{User}')\r\n| join kind=leftouter EmailAttachmentInfo on NetworkMessageId, RecipientEmailAddress\r\n| project TimeGenerated, SenderFromAddress, RecipientEmailAddress, Subject, AttachmentCount, FileName, FileType, FileSize, UrlCount, DeliveryAction, DeliveryLocation, EmailDirection, EmailAction\r\n| sort by TimeGenerated desc",
+        "size": 0,
+        "title": "Free-Mail Activity",
+        "noDataMessage": "No free-mail activity",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "rowLimit": 1000
+        }
+      },
+      "name": "Free-Mail",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "EmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}' or RecipientEmailAddress =~ '{User}'\r\n| where RecipientEmailAddress !in~ ('corespecialty.com@journaling.continuity-us2.proofpoint.com', 'journal@corespecialty.us2.proofpointarchiving.net', '8249dc3eca52a56c4407@us1.azure.antigena.com')\r\n| where DeliveryAction != 'Delivered'\r\n| project TimeGenerated, DeliveryAction, DeliveryLocation, EmailDirection, SenderDisplayName, SenderFromAddress, EnvelopeFromAddress=SenderMailFromAddress, RecipientEmailAddress, Subject, UrlCount, AttachmentCount, SenderIPv4, SenderIPv6, NetworkMessageId",
+        "size": 0,
+        "title": "Defender - Email - Blocked/Rerouted",
+        "noDataMessage": "No email messages blocked or rerouted found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "TimeGenerated",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "TimeGenerated",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "customWidth": "100",
+      "name": "EmailBlocked",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "EmailEvents\r\n| where (TimeGenerated between ({TimeRange:start} .. {TimeRange:end}) and '{PimStart}' == '*') or TimeGenerated between (todatetime('{PimStart}') .. todatetime('{PimEnd}'))\r\n| where SenderFromAddress =~ '{User}' or SenderMailFromAddress =~ '{User}' or RecipientEmailAddress =~ '{User}'\r\n| where RecipientEmailAddress !in~ ('corespecialty.com@journaling.continuity-us2.proofpoint.com', 'journal@corespecialty.us2.proofpointarchiving.net', '8249dc3eca52a56c4407@us1.azure.antigena.com')\r\n| where DeliveryAction != 'Blocked' and isnotempty(ThreatTypes)\r\n| project TimeGenerated, ThreatTypes, ConfidenceLevel, DetectionMethods, DeliveryAction, DeliveryLocation, SenderDisplayName, SenderFromAddress, EnvelopeFromAddress=SenderMailFromAddress, RecipientEmailAddress, Subject, SenderIPv4, SenderIPv6, AttachmentCount, UrlCount, OrgLevelAction, OrgLevelPolicy, UserLevelAction, UserLevelPolicy, NetworkMessageId\r\n\r\n//ThreatTypes = Spam, Phish, Malware (or a combo)",
+        "size": 0,
+        "title": "Defender - Email - Delivered Threats",
+        "noDataMessage": "No delivered email threats found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "lightBlue"
+              }
+            }
+          ],
+          "rowLimit": 1000
+        }
+      },
+      "customWidth": "100",
+      "name": "EmailThreats",
+      "styleSettings": {
+        "showBorder": true
+      }
+    }
+  ],
+  "fallbackResourceIds": [
+    
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
