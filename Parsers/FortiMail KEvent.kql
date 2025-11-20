@@ -1,0 +1,22 @@
+Syslog
+| where Facility == "local4" and SyslogMessage has "type=kevent"
+| project TimeGenerated, SyslogMessage
+| parse-kv SyslogMessage as (
+    log_id: string,
+    type: string,
+    subtype: string,
+    pri: string,
+    user: string,
+    ui: string,
+    action: string,
+    status: string,
+    session_id: string,
+    log_part: string,
+    msg: string) 
+    with (pair_delimiter=' ', kv_delimiter='=', quote='"', greedy=true)
+| project-away SyslogMessage
+| extend msg_fragment = iff(isnotempty(log_part), msg, ""), msg = iff(isnotempty(log_part), "fragmented message", msg) //detect fragmented messages
+| sort by session_id asc, log_id asc, log_part asc
+| summarize TimeGenerated=min(TimeGenerated), msg_fragments=make_list(msg_fragment) by session_id, log_id, type, subtype, pri, user, ui, action, status, msg
+| extend msg = iff(msg=="fragmented message", strcat_array(msg_fragments, ""), msg) //reassemble msg
+| project TimeGenerated, session_id, type, subtype, user, ui, action, status, msg
