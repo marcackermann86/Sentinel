@@ -1,0 +1,48 @@
+let Domains = (externaldata(Domain: string)
+    [@"https://raw.githubusercontent.com/Kikobeats/free-email-domains/master/domains.json"] with (format="raw")
+    | extend Domain=todynamic(tolower(Domain)));
+let alphabet = dynamic(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']);
+EmailEvents
+| where TimeGenerated >= ago(14d)
+| where RecipientEmailAddress has_any (toscalar(Domains))
+| summarize
+    Forwarded=dcountif(NetworkMessageId, Subject startswith_cs "FW:"),
+    Replied=dcountif(NetworkMessageId, Subject startswith_cs "RE:"),
+    New=dcountif(NetworkMessageId, Subject !startswith_cs "RE:" and Subject !startswith_cs "FW:"),
+    TotalEmails=dcount(NetworkMessageId),
+    EmailsWithAttachments=countif(AttachmentCount > 0),
+    TotalAttachments=sum(AttachmentCount),
+    EmailsWithUrls=countif(UrlCount > 0),
+    TotalUrls=sum(UrlCount)
+    by SenderFromAddress, RecipientEmailAddress
+| lookup kind=inner (IdentityInfo
+    | where TimeGenerated >= ago(14d)
+    | where isnotempty(GivenName) and isnotempty(Surname)
+    | extend DisplayNameParts=split(tolower(AccountDisplayName), " ")
+    | extend
+        AccountName = tolower(AccountName),
+        FirstName = tostring(DisplayNameParts[0]),
+        LastName = tostring(DisplayNameParts[-1]),
+        MiddleName = iff(array_length(DisplayNameParts) > 2, replace_string(tostring(DisplayNameParts[1]), ".", ""), "")
+    | extend
+        FirstInitial = substring(FirstName, 0, 1),
+        LastInitial = substring(LastName, 0, 1),
+        MiddleInitial = iff(isnotempty(MiddleName), todynamic(strcat('["', substring(MiddleName, 0, 1), '"]')), alphabet)
+    | extend PossibleUsernamesFL = pack_array(AccountName, replace_string(AccountName, ".", "_"), tostring(replace_string(AccountName, ".", "")), strcat(substring(FirstName, 0, 1), '.', LastName), strcat(substring(FirstName, 0, 1), '_', LastName), strcat(substring(FirstName, 0, 1), LastName), FirstName, LastName)
+    | mv-expand MiddleInitial to typeof(string)
+    | extend PossibleUsernamesFML = pack_array(strcat(FirstName, MiddleInitial, LastName), strcat(FirstName, '.', MiddleInitial, '.', LastName), strcat(FirstName, '_', MiddleInitial, '_', LastName), strcat(FirstInitial, MiddleInitial, LastName), strcat(FirstInitial, '.', MiddleInitial, '.', LastName), strcat(FirstInitial, '_', MiddleInitial, '_', LastName), strcat(FirstName, MiddleInitial, LastInitial), strcat(FirstName, '.', MiddleInitial, '.', LastInitial), strcat(FirstName, '_', MiddleInitial, '_', LastInitial), strcat(FirstInitial, MiddleInitial, LastInitial), strcat(FirstInitial, '.', MiddleInitial, '.', LastInitial), strcat(FirstInitial, '_', MiddleInitial, '_', LastInitial))
+    | summarize PossibleUsernames=make_set(set_union(PossibleUsernamesFL, PossibleUsernamesFML), 100000)
+        by
+        DisplayName=tolower(AccountDisplayName),
+        tostring(DisplayNameParts),
+        AccountName=tolower(AccountName),
+        AccountUPN=tolower(AccountUPN))
+    on $left.SenderFromAddress == $right.AccountUPN
+| mv-expand MatchedUsername=PossibleUsernames to typeof(string)
+| extend
+    RecipientDomain = tostring(split(RecipientEmailAddress, '@')[1]),
+    RecipientAccount = tostring(split(RecipientEmailAddress, '@')[0])
+| where RecipientAccount contains MatchedUsername
+| summarize arg_max(Len=strlen(MatchedUsername), *) by SenderFromAddress, RecipientDomain
+| project Sender=SenderFromAddress, Recipient=RecipientEmailAddress, RecipientDomain, MatchedUsername, TotalEmails, New, Forwarded, Replied, EmailsWithAttachments, TotalAttachments, EmailsWithUrls, TotalUrls
+| sort by TotalEmails desc
