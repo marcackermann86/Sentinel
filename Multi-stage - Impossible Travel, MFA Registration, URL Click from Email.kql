@@ -1,0 +1,157 @@
+let MfaLookback = 5m;
+let SigninToMfaRegister = 60m + MfaLookback;
+let UrlClickToSignin = 60m + SigninToMfaRegister;
+let EmailLookback = 1d + UrlClickToSignin;
+let MaxTravelSpeed = 767; //The speed of sound
+let MinTravelDistance = 100.0; //miles
+let AppExclusions = dynamic(["Microsoft Authentication Broker"]);
+let EmailSenderExclusions = dynamic([]); //Add safe email senders here
+let KnownSafeIps = dynamic([]); //Add known safe IPs here
+//Customize the feeds for the IP exclusion list to your environment
+let IpExclusionList = toscalar(externaldata(ipv4: dynamic, ipv6: dynamic) [
+    @'https://raw.githubusercontent.com/ipverse/asn-ip/master/as/8075/aggregated.json', //Microsoft IPs
+    @'https://raw.githubusercontent.com/ipverse/asn-ip/master/as/6167/aggregated.json', //Verizon Business IPs
+    @'https://raw.githubusercontent.com/ipverse/asn-ip/master/as/701/aggregated.json', //More Verizon Business IPs
+    @'https://raw.githubusercontent.com/ipverse/asn-ip/master/as/22616/aggregated.json' //Zscaler IPs
+    ] with(format='multijson', ingestionMapping='[{"Column":"ipv4","Properties":{"Path":"$.subnets.ipv4"}}, {"Column":"ipv6","Properties":{"Path":"$.subnets.ipv6"}}]')
+    | project subnets=array_concat(ipv4, ipv6, KnownSafeIps)
+    | summarize subnets=make_set(subnets));
+//Stage 4 - New MFA Registrations
+let MfaRegistrations = AuditLogs
+    | where TimeGenerated >= ago(MfaLookback)
+    | where Category =~ "UserManagement"
+    | where ActivityDisplayName =~ "User registered security info"
+    | extend IpAddress = tostring(InitiatedBy.user.ipAddress)
+    | mv-apply TargetResource = TargetResources on
+        (
+        where TargetResource.type =~ "User"
+        | extend User = tolower(tostring(TargetResource.userPrincipalName))
+        )
+    | distinct User, NewMfaRegisteredTime=ActivityDateTime, MfaRegistrationIp=IpAddress;
+MfaRegistrations
+//Stage 3 - Impossible travel sign-in observed
+| join kind=inner (SigninLogs
+    | where TimeGenerated >= ago(SigninToMfaRegister)
+    | extend User = tolower(UserPrincipalName)
+    //Get sign-ins for users with MFA registrations to help performance
+    | where User in (MfaRegistrations)
+    | where ResultType == 0 //Successful sign-ins only
+    | sort by User asc, TimeGenerated asc //Must sort to use prev() command
+    //Parse details for current sign-in
+    | extend
+        City = tostring(LocationDetails.city),
+        State = tostring(LocationDetails.state),
+        Country = tostring(LocationDetails.countryOrRegion),
+        Latitude = toreal(parse_json(tostring(LocationDetails.geoCoordinates)).latitude),
+        Longitude = toreal(parse_json(tostring(LocationDetails.geoCoordinates)).longitude),
+        IpAddress = IPAddress,
+        ImpossibleLoginTime = TimeGenerated
+    //Parse details for previous sign-in
+    | extend
+        PreviousCity = tostring(prev(LocationDetails).city),
+        PreviousState = tostring(prev(LocationDetails).state),
+        PreviousCountry = tostring(prev(LocationDetails).countryOrRegion),
+        PreviousLatitude = toreal(parse_json(tostring(prev(LocationDetails).geoCoordinates)).latitude),
+        PreviousLongitude = toreal(parse_json(tostring(prev(LocationDetails).geoCoordinates)).longitude),
+        PreviousIpAddress = prev(IPAddress),
+        PreviousLoginTime = prev(TimeGenerated)
+    | extend ImpossibleTravelTo = strcat(City, ", ", State, ", ", Country)
+    | extend ImpossibleTravelFrom = strcat(PreviousCity, ", ", PreviousState, ", ", PreviousCountry)
+    //Calculate distance between sign-in coordinates using spherical calculation for more accurate results and convert to miles (1609.344 meters = 1 mile). If user changes, set to -1.0.
+    | extend ['Travel Distance (mi)'] = iff(User =~ prev(User), round(geo_distance_2points(Longitude, Latitude, PreviousLongitude, PreviousLatitude, true) / 1609.344, 1), -1.0)
+    //Calculate time between sign-ins and convert to minutes (60 seconds = 1 minute) If user changes, set to -1.0.
+    | extend ['Travel Time (min)'] = iff(User =~ prev(User), round(datetime_diff('second', ImpossibleLoginTime, PreviousLoginTime) / 60.0, 1), -1.0)
+    //If time between sign-ins is zero minutes, set to 1 minute to avoid dividing by zero
+    | extend ['Travel Time (min)'] = iff(['Travel Time (min)'] == 0.0, 1.0, ['Travel Time (min)'])
+    //Calculate travel speed in miles per hour
+    | extend ["Travel Speed (mph)"] = round(['Travel Distance (mi)'] / (['Travel Time (min)'] / 60.0), 0)
+    //Travel speed threshold determines what is considered impossible travel
+    | where ['Travel Speed (mph)'] > MaxTravelSpeed
+    //Get rid of any travel less than the minimum threshold
+    | where ['Travel Distance (mi)'] > MinTravelDistance
+    //Get rid of any events where the user changed
+    | where ['Travel Time (min)'] > 0.0
+    //Ignore events where the IP geolocation changes for the same IP
+    | where IpAddress != PreviousIpAddress
+    //Exclude some apps and IP ranges that bounce too much
+    | where AppDisplayName !in (AppExclusions)
+    | where ipv4_is_in_any_range(IpAddress, IpExclusionList) != true
+    | where ipv4_is_in_any_range(PreviousIpAddress, IpExclusionList) != true
+    | where ipv6_is_in_any_range(IpAddress, IpExclusionList) != true
+    | where ipv6_is_in_any_range(PreviousIpAddress, IpExclusionList) != true
+    | extend DeviceDetails = strcat(DeviceDetail.operatingSystem, " - ", DeviceDetail.browser)
+    | distinct
+        ImpossibleLoginTime,
+        User,
+        IpAddress,
+        ImpossibleTravelTo,
+        PreviousLoginTime,
+        PreviousIpAddress,
+        ImpossibleTravelFrom,
+        ['Travel Distance (mi)'],
+        ['Travel Time (min)'],
+        ["Travel Speed (mph)"],
+        AppDisplayName,
+        DeviceDetails
+    )
+    on User
+//Make sure MFA registratioin happened after the impossible login
+| where NewMfaRegisteredTime - ImpossibleLoginTime between (0m .. SigninToMfaRegister)
+//Stage 1 - Email received
+| join kind=inner (EmailEvents
+    | where TimeGenerated >= ago(EmailLookback)
+    //Get inbound emails with links only
+    | where EmailDirection == "Inbound"
+    | where UrlCount > 0
+    | where SenderFromAddress !in~ (EmailSenderExclusions)
+    | project
+        NetworkMessageId,
+        User=tolower(RecipientEmailAddress),
+        EmailReceivedTime=TimeGenerated,
+        EmailSender=SenderFromAddress,
+        EmailSubject=Subject
+    //Get emails for users with MFA registrations to help performance
+    | where User in (MfaRegistrations)
+    | join kind=inner (EmailUrlInfo
+        | where TimeGenerated >= ago(EmailLookback)
+        | distinct NetworkMessageId, Url=tolower(Url), UrlDomain=tolower(UrlDomain)
+        )
+        on NetworkMessageId
+    //Stage 2 - Email url clicked
+    | join kind=inner (DeviceNetworkEvents
+        | where TimeGenerated >= ago(UrlClickToSignin)
+        | where isnotempty(InitiatingProcessAccountUpn) and isnotempty(RemoteUrl)
+        | extend User = tolower(InitiatingProcessAccountUpn)
+        //Get network events for users with MFA registrations to help performance
+        | where User in (MfaRegistrations)
+        | summarize UrlClickTime=min(TimeGenerated)
+            by
+            User,
+            Url=trim_start(@"http?:\/\/", tolower(RemoteUrl))
+        )
+        on User, $left.UrlDomain == $right.Url
+    | where UrlClickTime > EmailReceivedTime
+    )
+    on User
+| where ImpossibleLoginTime - UrlClickTime between (0m .. UrlClickToSignin)
+| project
+    User,
+    NewMfaRegisteredTime,
+    MfaRegistrationIp,
+    ImpossibleLoginTime,
+    ImpossibleTravelFrom,
+    ImpossibleTravelTo,
+    ['Travel Speed (mph)'],
+    IpAddress,
+    PreviousLoginTime,
+    PreviousIpAddress,
+    ['Travel Distance (mi)'],
+    ['Travel Time (min)'],
+    AppDisplayName,
+    DeviceDetails,
+    EmailReceivedTime,
+    UrlClickTime,
+    EmailSender,
+    EmailSubject,
+    ClickedUrl=Url
+| sort by ImpossibleLoginTime desc
