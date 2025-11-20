@@ -1,0 +1,11 @@
+SecurityIncident
+| where IncidentNumber == <INCIDENT #>
+| extend Owner = coalesce(tostring(Owner.assignedTo), "Unassigned")
+| sort by TimeGenerated asc
+| extend WhatChanged = iff(isempty(prev(Status)), "New Incident", "")
+| extend WhatChanged = iff(Status != prev(Status) and isnotempty(prev(Status)), strcat(WhatChanged, "Status: ", prev(Status), " --> ", Status), WhatChanged)
+| extend WhatChanged = iff(Owner != prev(Owner) and isnotempty(prev(Owner)), strcat(WhatChanged, iff(isnotempty(WhatChanged), " AND Owner: ", "Owner: "), prev(Owner), " --> ", Owner), WhatChanged)
+| extend WhatChanged = iff(Status != "New" and ModifiedBy == "Microsoft 365 Defender", "No Change - Defender Sync", WhatChanged)
+| extend WhatChanged = coalesce(WhatChanged, "Unknown Change")
+| project IncidentNumber, WhatChanged, Status, Owner, ModifiedBy, TimeGenerated, CreatedTime, ClosedTime, FirstActivityTime, LastActivityTime, FirstModifiedTime, LastModifiedTime, ingestion_time()
+| sort by TimeGenerated asc
