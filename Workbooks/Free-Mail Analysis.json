@@ -1,0 +1,688 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "219183db-962e-498a-b0a4-059250b79326",
+            "version": "KqlParameterItem/1.0",
+            "name": "Timeframe",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": {
+              "durationMs": 86400000
+            }
+          },
+          {
+            "id": "5b963a3c-c578-43c6-9136-09b517d3a376",
+            "version": "KqlParameterItem/1.0",
+            "name": "UseImported",
+            "label": "Domain List Source",
+            "type": 10,
+            "description": "Imported will use a pre-built list from a Github repo. Custom will use a much shorter list that can be added to.",
+            "isRequired": true,
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "showDefault": false
+            },
+            "jsonData": "[{\"value\":\"Imported\"},{\"value\":\"Custom\"}]",
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": "Custom"
+          },
+          {
+            "id": "e5e722bb-b4e4-4c29-b8c0-fb56af84520a",
+            "version": "KqlParameterItem/1.0",
+            "name": "FreeMailDomains",
+            "label": "Free-Mail Domains",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "\"",
+            "delimiter": ",",
+            "query": "let FreeMailDomains = dynamic([\"gmail.com\", \"hotmail.com\", \"live.com\", \"aol.com\", \"comcast.net\", \"yahoo.com\", \"mail.com\", \"proton.me\", \"protonmail.com\", \"outlook.com\", \"icloud.com\", \"me.com\"]);\r\nlet ImportedFreMailDomains = toscalar(externaldata(Domain: string)\r\n    [@\"https://raw.githubusercontent.com/Kikobeats/free-email-domains/master/domains.json\"] with (format=\"raw\")\r\n    | extend Domain=todynamic(tolower(Domain)));\r\nprint Domains=iff('{UseImported}'==\"Imported\", ImportedFreMailDomains, FreeMailDomains)\r\n| mv-expand Domains to typeof(string)\r\n| sort by Domains asc\r\n| limit 10000",
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": [
+              "value::all"
+            ]
+          },
+          {
+            "version": "KqlParameterItem/1.0",
+            "name": "FreeMailDomainsText",
+            "type": 1,
+            "isRequired": true,
+            "query": "let FreeMailDomains = strcat_array(dynamic([{FreeMailDomains}]), \", \");\r\nprint Domains=iff('{UseImported}'==\"Imported\", \"List is imported from - https://raw.githubusercontent.com/Kikobeats/free-email-domains/master/domains.json\", FreeMailDomains)",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "id": "0a7f13d2-e888-4b1a-86a0-6c41afbb0cb5"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 18"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Current Free-Mail Domain List </br>\r\n{FreeMailDomainsText}",
+        "style": "info"
+      },
+      "name": "text - 5"
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "tabStyle": "bigger",
+        "links": [
+          {
+            "id": "dd59e2df-9946-4b2d-a793-4045b68dc7ee",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Outbound",
+            "subTarget": "Outbound",
+            "preText": "Outbound",
+            "style": "link"
+          },
+          {
+            "id": "873af5e6-90a3-48eb-b3ab-e6fa2bce98cf",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Inbound",
+            "subTarget": "Inbound",
+            "preText": "Inbound",
+            "style": "primary"
+          },
+          {
+            "id": "50a507e3-b55f-45c6-ade5-43a92c303657",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Personal",
+            "subTarget": "Personal",
+            "preText": "Personal",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "tabs"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Outbound to Free-Mail",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"outbound\"\r\n| where SenderMailFromDomain =~ \"corespecialty.com\" and RecipientEmailAddress has_any (FreeMail_Domains)\r\n| extend RecipientDomain = tostring(split(RecipientEmailAddress,'@')[-1])\r\n| summarize Count=count() by RecipientDomain",
+              "size": 0,
+              "title": "Count by Free-Mail Domain",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart"
+            },
+            "customWidth": "25",
+            "name": "Email to Free-Mail - Copy - Copy - Copy",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"outbound\"\r\n| where SenderMailFromDomain =~ \"corespecialty.com\" and RecipientEmailAddress has_any (FreeMail_Domains)\r\n| join  kind=leftouter EmailAttachmentInfo on NetworkMessageId\r\n| project TimeGenerated, SenderFromAddress, RecipientEmailAddress, Subject, AttachmentCount, FileName, FileType, FileSize, UrlCount, DeliveryAction, DeliveryLocation, EmailDirection, EmailAction\r\n| summarize Count=count() by FileType=coalesce(FileType, \"Unknown\")",
+              "size": 0,
+              "title": "Count by Attachment Type",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart"
+            },
+            "customWidth": "25",
+            "name": "Email to Free-Mail - Copy - Copy",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"outbound\"\r\n| where SenderMailFromDomain =~ \"corespecialty.com\" and RecipientEmailAddress has_any (FreeMail_Domains)\r\n| summarize Count=count() by SenderFromAddress, RecipientEmailAddress\r\n| sort by Count desc",
+              "size": 0,
+              "title": "Count By Sender and Recipient",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Count",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "greenRed"
+                    }
+                  }
+                ],
+                "rowLimit": 1000
+              }
+            },
+            "customWidth": "50",
+            "name": "Count By Sender and Recipient - outbound",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"outbound\"\r\n| where SenderMailFromDomain =~ \"corespecialty.com\" and RecipientEmailAddress has_any (FreeMail_Domains)\r\n| project\r\n    TimeGenerated,\r\n    SenderFromAddress,\r\n    RecipientEmailAddress,\r\n    Subject = strcat('📧 ', Subject),\r\n    EmailDirection,\r\n    DeliveryAction,\r\n    NetworkMessageId,\r\n    ParentId='',\r\n    Id = strcat(NetworkMessageId, '-', RecipientEmailAddress)\r\n| union isfuzzy=true (EmailAttachmentInfo \r\n    | join kind=inner (EmailEvents\r\n        | project NetworkMessageId, SenderFromAddress, SenderMailFromDomain, RecipientEmailAddress)\r\n        on NetworkMessageId\r\n    | where SenderMailFromDomain =~ \"corespecialty.com\" and RecipientEmailAddress has_any (FreeMail_Domains)\r\n    | extend\r\n        ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress),\r\n        Id = tostring(new_guid()),\r\n        Subject='📎 Attachment')\r\n| union isfuzzy=true (EmailUrlInfo\r\n    | project NetworkMessageId, UrlDomain, UrlLocation, Url\r\n    | join kind=inner (EmailEvents\r\n        | project NetworkMessageId, SenderFromAddress, SenderMailFromDomain, RecipientEmailAddress)\r\n        on NetworkMessageId\r\n    | where SenderMailFromDomain =~ \"corespecialty.com\" and RecipientEmailAddress has_any (FreeMail_Domains)\r\n    | extend\r\n        ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress),\r\n        Id = tostring(new_guid()),\r\n        Subject='🔗 URL')\r\n| project\r\n    TimeGenerated,\r\n    SenderFromAddress,\r\n    RecipientEmailAddress,\r\n    Subject,\r\n    EmailDirection,\r\n    DeliveryAction,\r\n    FileName,\r\n    FileType,\r\n    FileSize,\r\n    UrlDomain,\r\n    UrlLocation,\r\n    Url,\r\n    NetworkMessageId,\r\n    ParentId,\r\n    Id\r\n| sort by TimeGenerated desc",
+              "size": 0,
+              "title": "Outbound Free-Mail Details",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Id",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "ParentId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true,
+                "hierarchySettings": {
+                  "idColumn": "Id",
+                  "parentColumn": "ParentId",
+                  "treeType": 0,
+                  "expanderColumn": "Subject"
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "TimeGenerated",
+                    "sortOrder": 2
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Sent Time"
+                  },
+                  {
+                    "columnId": "SenderFromAddress",
+                    "label": "Sender"
+                  },
+                  {
+                    "columnId": "RecipientEmailAddress",
+                    "label": "Recipient"
+                  },
+                  {
+                    "columnId": "EmailDirection",
+                    "label": "Direction"
+                  },
+                  {
+                    "columnId": "DeliveryAction",
+                    "label": "Delivery Action"
+                  },
+                  {
+                    "columnId": "FileName",
+                    "label": "File Name"
+                  },
+                  {
+                    "columnId": "FileType",
+                    "label": "File Type"
+                  },
+                  {
+                    "columnId": "FileSize",
+                    "label": "File Size"
+                  },
+                  {
+                    "columnId": "UrlDomain",
+                    "label": "URL Domain"
+                  },
+                  {
+                    "columnId": "UrlLocation",
+                    "label": "URL Location"
+                  },
+                  {
+                    "columnId": "Url",
+                    "label": "URL"
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "TimeGenerated",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "Outbound Free-Mail Details",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "Outbound"
+      },
+      "name": "Outbound to Free-Mail",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Inbound from Free-Mail",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"inbound\"\r\n| where SenderMailFromDomain has_any (FreeMail_Domains)\r\n| summarize Count=count() by SenderMailFromDomain",
+              "size": 0,
+              "title": "Count by Free-Mail Domain",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart"
+            },
+            "customWidth": "25",
+            "name": "Email to Free-Mail - Copy - Copy - Copy",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"inbound\"\r\n| where SenderMailFromDomain has_any (FreeMail_Domains)\r\n| join  kind=leftouter EmailAttachmentInfo on NetworkMessageId\r\n| project TimeGenerated, SenderFromAddress, RecipientEmailAddress, Subject, AttachmentCount, FileName, FileType, FileSize, UrlCount, DeliveryAction, DeliveryLocation, EmailDirection, EmailAction\r\n| summarize Count=count() by FileType=coalesce(FileType, \"Unknown\")",
+              "size": 0,
+              "title": "Count by Attachment Type",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart"
+            },
+            "customWidth": "25",
+            "name": "Email to Free-Mail - Copy - Copy",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"inbound\"\r\n| where SenderMailFromDomain has_any (FreeMail_Domains)\r\n| summarize Count=count() by SenderFromAddress, RecipientEmailAddress\r\n| sort by Count desc",
+              "size": 0,
+              "title": "Count By Sender and Recipient",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Count",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "greenRed"
+                    }
+                  }
+                ],
+                "rowLimit": 10000
+              }
+            },
+            "customWidth": "50",
+            "name": "Email to Free-Mail - Copy",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nEmailEvents\r\n| where EmailDirection =~ \"inbound\"\r\n| where SenderMailFromDomain has_any (FreeMail_Domains)\r\n| project\r\n    TimeGenerated,\r\n    SenderFromAddress,\r\n    RecipientEmailAddress,\r\n    Subject = strcat('📧 ', Subject),\r\n    EmailDirection,\r\n    DeliveryAction,\r\n    NetworkMessageId,\r\n    ParentId='',\r\n    Id = strcat(NetworkMessageId, '-', RecipientEmailAddress)\r\n| union isfuzzy=true (EmailAttachmentInfo \r\n    | join kind=inner (EmailEvents\r\n        | project NetworkMessageId, SenderFromAddress, SenderMailFromDomain, RecipientEmailAddress)\r\n        on NetworkMessageId\r\n    | where SenderMailFromDomain has_any (FreeMail_Domains)\r\n    | extend\r\n        ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress),\r\n        Id = tostring(new_guid()),\r\n        Subject='📎 Attachment')\r\n| union isfuzzy=true (EmailUrlInfo\r\n    | project NetworkMessageId, UrlDomain, UrlLocation, Url\r\n    | join kind=inner (EmailEvents\r\n        | project NetworkMessageId, SenderFromAddress, SenderMailFromDomain, RecipientEmailAddress)\r\n        on NetworkMessageId\r\n    | where SenderMailFromDomain has_any (FreeMail_Domains)\r\n    | extend\r\n        ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress),\r\n        Id = tostring(new_guid()),\r\n        Subject='🔗 URL')\r\n| project\r\n    TimeGenerated,\r\n    SenderFromAddress,\r\n    RecipientEmailAddress,\r\n    Subject,\r\n    EmailDirection,\r\n    DeliveryAction,\r\n    FileName,\r\n    FileType,\r\n    FileSize,\r\n    UrlDomain,\r\n    UrlLocation,\r\n    Url,\r\n    NetworkMessageId,\r\n    ParentId,\r\n    Id\r\n| sort by TimeGenerated desc",
+              "size": 0,
+              "title": "Inbound Free-Mail Details",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Id",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "ParentId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true,
+                "hierarchySettings": {
+                  "idColumn": "Id",
+                  "parentColumn": "ParentId",
+                  "treeType": 0,
+                  "expanderColumn": "Subject"
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "TimeGenerated",
+                    "sortOrder": 2
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Sent Time"
+                  },
+                  {
+                    "columnId": "SenderFromAddress",
+                    "label": "Sender"
+                  },
+                  {
+                    "columnId": "RecipientEmailAddress",
+                    "label": "Recipient"
+                  },
+                  {
+                    "columnId": "EmailDirection",
+                    "label": "Direction"
+                  },
+                  {
+                    "columnId": "DeliveryAction",
+                    "label": "Delivery Action"
+                  },
+                  {
+                    "columnId": "FileName",
+                    "label": "File Name"
+                  },
+                  {
+                    "columnId": "FileType",
+                    "label": "File Type"
+                  },
+                  {
+                    "columnId": "FileSize",
+                    "label": "File Size"
+                  },
+                  {
+                    "columnId": "UrlDomain",
+                    "label": "URL Domain"
+                  },
+                  {
+                    "columnId": "UrlLocation",
+                    "label": "URL Location"
+                  },
+                  {
+                    "columnId": "Url",
+                    "label": "URL"
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "TimeGenerated",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "Inbound Free-Mail Details",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "Inbound"
+      },
+      "name": "Inbound from Free-Mail",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Personal Email",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let FreeMail_Domains = dynamic([{FreeMailDomains}]);\r\nlet alphabet = dynamic(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']);\r\nEmailEvents\r\n| where RecipientEmailAddress has_any (FreeMail_Domains)\r\n| summarize\r\n    Forwarded=dcountif(NetworkMessageId, Subject startswith_cs \"FW:\"),\r\n    Replied=dcountif(NetworkMessageId, Subject startswith_cs \"RE:\"),\r\n    New=dcountif(NetworkMessageId, Subject !startswith_cs \"RE:\" and Subject !startswith_cs \"FW:\"),\r\n    TotalEmails=dcount(NetworkMessageId),\r\n    EmailsWithAttachments=countif(AttachmentCount > 0),\r\n    TotalAttachments=sum(AttachmentCount),\r\n    EmailsWithUrls=countif(UrlCount > 0),\r\n    TotalUrls=sum(UrlCount)\r\n    by SenderFromAddress, RecipientEmailAddress\r\n| join kind=inner (IdentityInfo\r\n    | where TimeGenerated >= ago(30d)\r\n    | where isnotempty(GivenName) and isnotempty(Surname)\r\n    | extend DisplayNameParts=split(tolower(AccountDisplayName), \" \")\r\n    | extend\r\n        AccountName = tolower(AccountName),\r\n        FirstName = tostring(DisplayNameParts[0]),\r\n        LastName = tostring(DisplayNameParts[-1]),\r\n        MiddleName = iff(array_length(DisplayNameParts) > 2, replace_string(tostring(DisplayNameParts[1]), \".\", \"\"), \"\")\r\n    | extend\r\n        FirstInitial = substring(FirstName, 0, 1),\r\n        LastInitial = substring(LastName, 0, 1),\r\n        MiddleInitial = iff(isnotempty(MiddleName), todynamic(strcat('[\"', substring(MiddleName, 0, 1), '\"]')), alphabet)\r\n    | extend PossibleUsernamesFL = pack_array(AccountName, replace_string(AccountName, \".\", \"_\"), tostring(replace_string(AccountName, \".\", \"\")), strcat(substring(FirstName, 0, 1), '.', LastName), strcat(substring(FirstName, 0, 1), '_', LastName), strcat(substring(FirstName, 0, 1), LastName), FirstName, LastName)\r\n    | mv-expand MiddleInitial to typeof(string)\r\n    | extend PossibleUsernamesFML = pack_array(strcat(FirstName, MiddleInitial, LastName), strcat(FirstName, '.', MiddleInitial, '.', LastName), strcat(FirstName, '_', MiddleInitial, '_', LastName), strcat(FirstInitial, MiddleInitial, LastName), strcat(FirstInitial, '.', MiddleInitial, '.', LastName), strcat(FirstInitial, '_', MiddleInitial, '_', LastName), strcat(FirstName, MiddleInitial, LastInitial), strcat(FirstName, '.', MiddleInitial, '.', LastInitial), strcat(FirstName, '_', MiddleInitial, '_', LastInitial), strcat(FirstInitial, MiddleInitial, LastInitial), strcat(FirstInitial, '.', MiddleInitial, '.', LastInitial), strcat(FirstInitial, '_', MiddleInitial, '_', LastInitial))\r\n    | summarize PossibleUsernames=make_set(set_union(PossibleUsernamesFL, PossibleUsernamesFML), 100000)\r\n        by\r\n        DisplayName=tolower(AccountDisplayName),\r\n        tostring(DisplayNameParts),\r\n        AccountName=tolower(AccountName),\r\n        AccountUPN=tolower(AccountUPN))\r\n    on $left.SenderFromAddress == $right.AccountUPN\r\n| mv-expand MatchedUsername=PossibleUsernames to typeof(string)\r\n| extend\r\n    RecipientDomain = tostring(split(RecipientEmailAddress, '@')[1]),\r\n    RecipientAccount = tostring(split(RecipientEmailAddress, '@')[0])\r\n| where RecipientAccount contains MatchedUsername\r\n| summarize arg_max(Len=strlen(MatchedUsername), *) by SenderFromAddress, RecipientDomain\r\n| project Sender=SenderFromAddress, Recipient=RecipientEmailAddress, RecipientDomain, MatchedUsername, TotalEmails, New, Forwarded, Replied, EmailsWithAttachments, TotalAttachments, EmailsWithUrls, TotalUrls\r\n| sort by TotalEmails desc",
+              "size": 0,
+              "title": "Outbound to Personal Email",
+              "noDataMessage": "No outbound personal emails found for the specified time range",
+              "timeContextFromParameter": "Timeframe",
+              "exportedParameters": [
+                {
+                  "fieldName": "Sender",
+                  "parameterName": "DrilldownSender",
+                  "parameterType": 1
+                },
+                {
+                  "fieldName": "Recipient",
+                  "parameterName": "DrilldownRecipient",
+                  "parameterType": 1
+                }
+              ],
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalEmails",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "greenRed"
+                    }
+                  }
+                ],
+                "rowLimit": 5000,
+                "filter": true
+              }
+            },
+            "name": "outbound personal email",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "### Select a sender and recipient combination above to drilldown into all communcation between these to email addresses.",
+              "style": "upsell"
+            },
+            "name": "text - 2"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "EmailEvents\r\n| where (SenderFromAddress =~ '{DrilldownSender}' and RecipientEmailAddress =~ '{DrilldownRecipient}') \r\n     or (SenderFromAddress =~ '{DrilldownRecipient}' and RecipientEmailAddress =~ '{DrilldownSender}')\r\n| project\r\n    TimeGenerated,\r\n    SenderFromAddress,\r\n    RecipientEmailAddress,\r\n    Subject = strcat('📧 ', Subject),\r\n    EmailDirection,\r\n    DeliveryAction,\r\n    NetworkMessageId,\r\n    ParentId='',\r\n    Id = strcat(NetworkMessageId, '-', RecipientEmailAddress)\r\n| union isfuzzy=true (EmailAttachmentInfo \r\n    | where (SenderFromAddress =~ '{DrilldownSender}' and RecipientEmailAddress =~ '{DrilldownRecipient}') \r\n         or (SenderFromAddress =~ '{DrilldownRecipient}' and RecipientEmailAddress =~ '{DrilldownSender}')\r\n    | extend\r\n        ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress),\r\n        Id = tostring(new_guid()),\r\n        Subject='📎 Attachment')\r\n| union isfuzzy=true (EmailUrlInfo\r\n    | project NetworkMessageId, UrlDomain, UrlLocation, Url\r\n    | join kind=inner (EmailEvents\r\n        | project NetworkMessageId, SenderFromAddress, RecipientEmailAddress)\r\n        on NetworkMessageId\r\n    | where (SenderFromAddress =~ '{DrilldownSender}' and RecipientEmailAddress =~ '{DrilldownRecipient}') \r\n         or (SenderFromAddress =~ '{DrilldownRecipient}' and RecipientEmailAddress =~ '{DrilldownSender}')\r\n    | extend\r\n        ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress),\r\n        Id = tostring(new_guid()),\r\n        Subject='🔗 URL')\r\n| project\r\n    TimeGenerated,\r\n    SenderFromAddress,\r\n    RecipientEmailAddress,\r\n    Subject,\r\n    EmailDirection,\r\n    DeliveryAction,\r\n    FileName,\r\n    FileType,\r\n    FileSize,\r\n    UrlDomain,\r\n    UrlLocation,\r\n    Url,\r\n    NetworkMessageId,\r\n    ParentId,\r\n    Id\r\n| sort by TimeGenerated desc",
+              "size": 0,
+              "title": "Drilldown - All Emails Between {DrilldownSender} and {DrilldownRecipient}",
+              "timeContextFromParameter": "Timeframe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Id",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "ParentId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "hierarchySettings": {
+                  "idColumn": "Id",
+                  "parentColumn": "ParentId",
+                  "treeType": 0,
+                  "expanderColumn": "Subject"
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "TimeGenerated",
+                    "sortOrder": 2
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Sent Time"
+                  },
+                  {
+                    "columnId": "SenderFromAddress",
+                    "label": "Sender"
+                  },
+                  {
+                    "columnId": "RecipientEmailAddress",
+                    "label": "Recipient"
+                  },
+                  {
+                    "columnId": "EmailDirection",
+                    "label": "Direction"
+                  },
+                  {
+                    "columnId": "DeliveryAction",
+                    "label": "Delivery Action"
+                  },
+                  {
+                    "columnId": "FileName",
+                    "label": "File Name"
+                  },
+                  {
+                    "columnId": "FileType",
+                    "label": "File Type"
+                  },
+                  {
+                    "columnId": "FileSize",
+                    "label": "File Size"
+                  },
+                  {
+                    "columnId": "UrlDomain",
+                    "label": "URL Domain"
+                  },
+                  {
+                    "columnId": "UrlLocation",
+                    "label": "URL Location"
+                  },
+                  {
+                    "columnId": "Url",
+                    "label": "URL"
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "TimeGenerated",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "drilldown all email",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "Personal"
+      },
+      "name": "personal email",
+      "styleSettings": {
+        "showBorder": true
+      }
+    }
+  ],
+  "fallbackResourceIds": [
+    
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
