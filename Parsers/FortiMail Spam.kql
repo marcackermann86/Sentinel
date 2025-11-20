@@ -1,0 +1,26 @@
+Syslog
+| where Facility == "local4" and SyslogMessage has "type=spam"
+| project TimeGenerated, SyslogMessage
+| parse-kv SyslogMessage as (
+    log_id: string,
+    type: string,
+    subtype: string,
+    pri: string,
+    wf_cat_id: int,
+    url: string,
+    session_id: string,
+    client_name: string,
+    dst_ip: string,
+    from: string,
+    to: string,
+    subject: string,
+    log_part: string,
+    msg: string) 
+    with (pair_delimiter=' ', kv_delimiter='=', quote='"', greedy=true)
+| extend msg_fragment = iff(isnotempty(log_part), msg, ""), msg = iff(isnotempty(log_part), "fragmented message", msg) //detect fragmented messages
+| lookup kind=leftouter (FortiMailWebCategories | project wf_cat_id, urlCategory=strcat(cat_name, "/", subcat_name)) on wf_cat_id
+| extend msg = iff(msg == "FortiGuard-WebFilter identified URL", strcat(msg, " as ", urlCategory, " - ", url), msg)
+| sort by session_id asc, log_id asc, log_part asc
+| summarize TimeGenerated=min(TimeGenerated), msg_fragments=make_list(msg_fragment) by session_id, log_id, type, pri, client_name, from, ['to'], msg
+| extend msg = iff(msg=="fragmented message", strcat_array(msg_fragments, ""), msg) //reassemble msg
+| project TimeGenerated, session_id, type, client_name, sender=from, recipient=['to'], msg
