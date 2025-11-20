@@ -1,0 +1,777 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 18,
+      "content": {
+        "version": "ImageItem/1.0",
+        "imageUrl": "",
+        "size": 3,
+        "title": "",
+        "altText": ""
+      },
+      "customWidth": "15",
+      "name": "image - 12"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# The Ultimate PIM Workbook \r\n#### One workbook to rule them all"
+      },
+      "customWidth": "50",
+      "name": "title"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "9d291750-9829-4461-a827-626939c0e20a",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time Range",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": {
+              "durationMs": 604800000
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "main parameteres"
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "id": "2c3dde93-8d4e-4f55-9728-de722981f893",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "By User",
+            "subTarget": "user",
+            "preText": "s",
+            "postText": "s",
+            "style": "link"
+          },
+          {
+            "id": "247f68a7-f0a6-4011-89ef-cf5f38b8a260",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "By Role",
+            "subTarget": "role",
+            "style": "link"
+          },
+          {
+            "id": "00caf705-70b7-4405-9c97-f0ddae7fd531",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "By Gorup",
+            "subTarget": "group",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "links - 5"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\r\n| where OperationName has \"Add member to role request approved\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"User\"\r\n    | project Approver = tostring(TargetResource.userPrincipalName))\r\n| project Approver, ApprovalReason=ResultDescription, CorrelationId",
+        "size": 0,
+        "title": "PIM Approvals",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "conditionalVisibility": {
+        "parameterName": "1",
+        "comparison": "isEqualTo",
+        "value": "0"
+      },
+      "name": "pim approvals"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let Base = AuditLogs\r\n| where OperationName has \"Add member to role completed\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"User\"\r\n    | project User = tostring(TargetResource.userPrincipalName), UserId = tostring(TargetResource.id))\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Role\"\r\n    | project Role = tostring(TargetResource.displayName));\r\nBase\r\n| where Role != \"Member\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Group\"\r\n    | distinct Group = tostring(TargetResource.displayName))\r\n| project ActivationTime=TimeGenerated, OperationName, User, Type=\"Role PIM via Group\", Role, Group, Justification=ResultDescription, CorrelationId, UserId\r\n| union (Base\r\n| where Role != \"Member\" and TargetResources !has \"Group\"\r\n| project ActivationTime=TimeGenerated, OperationName, User, Type=\"Role PIM via Direct\", Role, Justification=ResultDescription, CorrelationId, UserId)\r\n| union (Base\r\n| where Role == \"Member\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Other\" and isnotnull(TargetResource.displayName)\r\n    | distinct Group = tostring(TargetResource.displayName))\r\n| project ActivationTime=TimeGenerated, OperationName, User, Type=\"Group PIM\", Role, Group, Justification=ResultDescription, CorrelationId, UserId)\r\n| sort by ActivationTime desc",
+        "size": 0,
+        "title": "PIM Activations",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "conditionalVisibility": {
+        "parameterName": "1",
+        "comparison": "isEqualTo",
+        "value": "0"
+      },
+      "name": "pim activations"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let Base = AuditLogs\r\n| where OperationName has \"Remove member from role (PIM activation expired)\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"User\"\r\n    | project User = tostring(TargetResource.userPrincipalName))\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Role\"\r\n    | project Role = tostring(TargetResource.displayName));\r\nBase\r\n| where Role != \"Member\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Group\"\r\n    | distinct Group = tostring(TargetResource.displayName))\r\n| project DeactivationTime=TimeGenerated, OperationName, User, Role, Group, CorrelationId\r\n| union (Base\r\n| where Role != \"Member\" and TargetResources !has \"Group\"\r\n| project DeactivationTime=TimeGenerated, OperationName, User, Role, CorrelationId)\r\n| union (Base\r\n| where Role == \"Member\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Other\" and isnotnull(TargetResource.displayName)\r\n    | distinct Group = tostring(TargetResource.displayName))\r\n| project DeactivationTime=TimeGenerated, OperationName, User, Role, Group, CorrelationId)\r\n| sort by DeactivationTime desc",
+        "size": 0,
+        "title": "PIM Deactivations",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "conditionalVisibility": {
+        "parameterName": "1",
+        "comparison": "isEqualTo",
+        "value": "0"
+      },
+      "name": "pim deactivations"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "be85be83-2dfa-4e3a-877f-e40da019ddcc",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "User",
+                  "type": 2,
+                  "query": "AuditLogs\r\n| where OperationName has \"Add member to role completed\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"User\"\r\n    | project User = tolower(TargetResource.userPrincipalName), \r\n              DisplayName = tostring(TargetResource.displayName))\r\n| distinct value = User, label = strcat(DisplayName, \" (\", User, \")\")\r\n| sort by label asc",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                },
+                {
+                  "id": "4394e5c6-9714-456d-8aef-0b9d00993b00",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "UserId",
+                  "type": 1,
+                  "query": "IdentityInfo\r\n| where TimeGenerated >= ago(90d)\r\n| summarize arg_max(TimeGenerated, *) by AccountObjectId\r\n| where AccountUPN == '{User}' and '{User}' != \"\"\r\n| project value = AccountObjectId",
+                  "isHiddenWhenLocked": true,
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "Tab",
+              "comparison": "isEqualTo",
+              "value": "user"
+            },
+            "name": "parameters - 0 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "datatable (User:string) ['{User}']",
+              "size": 4,
+              "title": "User Table",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "1",
+              "comparison": "isEqualTo",
+              "value": "0"
+            },
+            "showPin": false,
+            "name": "user table"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1ea\",\"mergeType\":\"inner\",\"leftTable\":\"pim activations\",\"rightTable\":\"user table\",\"leftColumn\":\"User\",\"rightColumn\":\"User\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1eb\",\"mergeType\":\"leftouter\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim deactivations\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1ec\",\"mergeType\":\"leftouter\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim approvals\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"}],\"projectRename\":[{\"originalName\":\"[pim activations].User\",\"mergedName\":\"User\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].Type\",\"mergedName\":\"Type\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].ActivationTime\",\"mergedName\":\"Activation Time\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim deactivations].DeactivationTime\",\"mergedName\":\"Deactivation Time\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1eb\"},{\"originalName\":\"[pim activations].Role\",\"mergedName\":\"Role\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].Group\",\"mergedName\":\"Group\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].Justification\",\"mergedName\":\"Justification\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim approvals].Approver\",\"mergedName\":\"Approver\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ec\"},{\"originalName\":\"[pim approvals].ApprovalReason\",\"mergedName\":\"Approval Reason\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ec\"},{\"originalName\":\"[pim activations].UserId\",\"mergedName\":\"UserId\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ea\"},{\"originalName\":\"[pim activations].OperationName\"},{\"originalName\":\"[pim activations].CorrelationId\"},{\"originalName\":\"[pim deactivations].OperationName\"},{\"originalName\":\"[pim deactivations].User\"},{\"originalName\":\"[pim deactivations].Role\"},{\"originalName\":\"[pim deactivations].Group\"},{\"originalName\":\"[pim deactivations].CorrelationId\"},{\"originalName\":\"[pim approvals].CorrelationId\"},{\"originalName\":\"[user table].User\"}]}",
+              "size": 0,
+              "title": "PIM Sessions",
+              "noDataMessage": "No PIM activity found for the specified parameters",
+              "showRefreshButton": true,
+              "exportParameterName": "SelectedSession",
+              "exportDefaultValue": "none",
+              "showExportToExcel": true,
+              "queryType": 7,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "UserId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true,
+                "sortBy": [
+                  {
+                    "itemKey": "Deactivation Time",
+                    "sortOrder": 1
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "Deactivation Time",
+                  "sortOrder": 1
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "User",
+              "comparison": "isNotEqualTo"
+            },
+            "showPin": false,
+            "name": "pim sessions user filtered",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\",\"mergeType\":\"outer\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim deactivations\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"},{\"id\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9089\",\"mergeType\":\"outer\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim approvals\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"}],\"projectRename\":[{\"originalName\":\"[pim activations].User\",\"mergedName\":\"User\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim activations].Type\",\"mergedName\":\"Type\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim activations].ActivationTime\",\"mergedName\":\"Activation Time\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim deactivations].DeactivationTime\",\"mergedName\":\"Deactivation Time\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim activations].Role\",\"mergedName\":\"Role\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim activations].Group\",\"mergedName\":\"Group\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim activations].Justification\",\"mergedName\":\"Justification\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim approvals].Approver\",\"mergedName\":\"Approver\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9089\"},{\"originalName\":\"[pim approvals].ApprovalReason\",\"mergedName\":\"Approval Reason\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9089\"},{\"originalName\":\"[pim activations].UserId\",\"mergedName\":\"UserId\",\"fromId\":\"9ab5d22a-b72a-4fa9-b2d3-4b8755fb9082\"},{\"originalName\":\"[pim activations].OperationName\"},{\"originalName\":\"[pim activations].CorrelationId\"},{\"originalName\":\"[pim deactivations].OperationName\"},{\"originalName\":\"[pim deactivations].User\"},{\"originalName\":\"[pim deactivations].Role\"},{\"originalName\":\"[pim deactivations].Group\"},{\"originalName\":\"[pim deactivations].CorrelationId\"},{\"originalName\":\"[pim approvals].CorrelationId\"}]}",
+              "size": 0,
+              "title": "PIM Sessions",
+              "noDataMessage": "No PIM activity found for the specified parameters",
+              "showRefreshButton": true,
+              "exportParameterName": "SelectedSession",
+              "exportDefaultValue": "none",
+              "showExportToExcel": true,
+              "queryType": 7,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "UserId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true
+              },
+              "sortBy": []
+            },
+            "conditionalVisibility": {
+              "parameterName": "User",
+              "comparison": "isEqualTo"
+            },
+            "showPin": false,
+            "name": "pim sessions no user filtered",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ],
+        "exportParameters": true
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "user"
+      },
+      "name": "user tab"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "8f4ee82c-bd6c-4105-ad60-b8a85ccc1bb1",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "EntraRole",
+                  "label": "Role",
+                  "type": 2,
+                  "query": "AuditLogs\r\n| where OperationName has \"Add member to role completed\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Role\"\r\n    | project Role = tostring(TargetResource.displayName))\r\n| distinct Role\r\n| sort by Role asc",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 604800000
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "Tab",
+              "comparison": "isEqualTo",
+              "value": "role"
+            },
+            "name": "parameters - 0 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "datatable (Role:string) ['{EntraRole}']",
+              "size": 4,
+              "title": "Role Table",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "1",
+              "comparison": "isEqualTo",
+              "value": "0"
+            },
+            "showPin": false,
+            "name": "role table"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d0df\",\"mergeType\":\"inner\",\"leftTable\":\"pim activations\",\"rightTable\":\"role table\",\"leftColumn\":\"Role\",\"rightColumn\":\"Role\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1c6\",\"mergeType\":\"leftouter\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim deactivations\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1c7\",\"mergeType\":\"leftouter\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim approvals\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"}],\"projectRename\":[{\"originalName\":\"[pim activations].User\",\"mergedName\":\"User\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].Type\",\"mergedName\":\"Type\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].ActivationTime\",\"mergedName\":\"Activation Time\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim deactivations].DeactivationTime\",\"mergedName\":\"Deactivation Time\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1c6\"},{\"originalName\":\"[pim activations].Role\",\"mergedName\":\"Role\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].Group\",\"mergedName\":\"Group\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim activations].Justification\",\"mergedName\":\"Justification\",\"fromId\":\"unknown\"},{\"originalName\":\"[pim approvals].Approver\",\"mergedName\":\"Approver\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1c7\"},{\"originalName\":\"[pim approvals].ApprovalReason\",\"mergedName\":\"Approval Reason\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1c7\"},{\"originalName\":\"[pim activations].UserId\",\"mergedName\":\"UserId\",\"fromId\":\"unknown\"},{\"originalName\":\"[user table].User\"},{\"originalName\":\"[role table].Role\"},{\"originalName\":\"[pim approvals].CorrelationId\"},{\"originalName\":\"[pim deactivations].CorrelationId\"},{\"originalName\":\"[pim deactivations].Group\"},{\"originalName\":\"[pim deactivations].Role\"},{\"originalName\":\"[pim deactivations].User\"},{\"originalName\":\"[pim deactivations].OperationName\"},{\"originalName\":\"[pim activations].OperationName\"},{\"originalName\":\"[pim activations].CorrelationId\"}]}",
+              "size": 0,
+              "title": "PIM Sessions",
+              "noDataMessage": "No PIM activity found for the specified parameters",
+              "showRefreshButton": true,
+              "exportParameterName": "SelectedSession",
+              "exportDefaultValue": "none",
+              "showExportToExcel": true,
+              "queryType": 7,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "UserId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true
+              },
+              "sortBy": []
+            },
+            "conditionalVisibility": {
+              "parameterName": "EntraRole",
+              "comparison": "isNotEqualTo"
+            },
+            "showPin": false,
+            "name": "pim sessions role filter",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"47e20fc5-f3dc-496f-a234-7008341670a5\",\"mergeType\":\"outer\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim deactivations\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d0de\",\"mergeType\":\"outer\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim approvals\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"}],\"projectRename\":[{\"originalName\":\"[pim activations].User\",\"mergedName\":\"User\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim activations].ActivationTime\",\"mergedName\":\"Activation Time\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim deactivations].DeactivationTime\",\"mergedName\":\"Deactivation Time\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim activations].Type\",\"mergedName\":\"Type\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim activations].Role\",\"mergedName\":\"Role\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim activations].Group\",\"mergedName\":\"Group\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim activations].Justification\",\"mergedName\":\"Justification\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[pim approvals].Approver\",\"mergedName\":\"Approver\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d0de\"},{\"originalName\":\"[pim approvals].ApprovalReason\",\"mergedName\":\"Approval Reason\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d0de\"},{\"originalName\":\"[pim activations].UserId\",\"mergedName\":\"UserId\",\"fromId\":\"47e20fc5-f3dc-496f-a234-7008341670a5\"},{\"originalName\":\"[user table].User\"},{\"originalName\":\"[role table].Role\"},{\"originalName\":\"[pim approvals].CorrelationId\"},{\"originalName\":\"[pim deactivations].CorrelationId\"},{\"originalName\":\"[pim deactivations].Group\"},{\"originalName\":\"[pim deactivations].Role\"},{\"originalName\":\"[pim deactivations].User\"},{\"originalName\":\"[pim deactivations].OperationName\"},{\"originalName\":\"[pim activations].OperationName\"},{\"originalName\":\"[pim activations].CorrelationId\"}]}",
+              "size": 0,
+              "title": "PIM Sessions",
+              "noDataMessage": "No PIM activity found for the specified parameters",
+              "showRefreshButton": true,
+              "exportParameterName": "SelectedSession",
+              "exportDefaultValue": "none",
+              "showExportToExcel": true,
+              "queryType": 7,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "UserId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true
+              },
+              "sortBy": []
+            },
+            "conditionalVisibility": {
+              "parameterName": "EntraRole",
+              "comparison": "isEqualTo"
+            },
+            "showPin": false,
+            "name": "pim sessions no role filter",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ],
+        "exportParameters": true
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "role"
+      },
+      "name": "role tab"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "0c525200-9989-4e35-99f8-5929d2b9d688",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "EntraGroup",
+                  "label": "Group",
+                  "type": 2,
+                  "query": "AuditLogs\r\n| where OperationName has \"Add member to role completed\"\r\n| mv-apply TargetResource=TargetResources on (\r\n    where TargetResource.type == \"Group\"\r\n    | project Group = tostring(TargetResource.displayName))\r\n| distinct Group\r\n| sort by Group asc",
+                  "typeSettings": {
+                    "additionalResourceOptions": []
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "Tab",
+              "comparison": "isEqualTo",
+              "value": "group"
+            },
+            "name": "parameters - 0 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "datatable (Group:string) ['{EntraGroup}']",
+              "size": 4,
+              "title": "Group Table",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "1",
+              "comparison": "isEqualTo",
+              "value": "0"
+            },
+            "showPin": false,
+            "name": "group table"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\",\"mergeType\":\"inner\",\"leftTable\":\"pim activations\",\"rightTable\":\"group table\",\"leftColumn\":\"Group\",\"rightColumn\":\"Group\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1af\",\"mergeType\":\"leftouter\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim deactivations\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d1b0\",\"mergeType\":\"leftouter\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim approvals\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"}],\"projectRename\":[{\"originalName\":\"[pim activations].User\",\"mergedName\":\"User\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[pim activations].Type\",\"mergedName\":\"Type\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[pim activations].ActivationTime\",\"mergedName\":\"Activation Time\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[pim deactivations].DeactivationTime\",\"mergedName\":\"Deactivation Time\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1af\"},{\"originalName\":\"[pim activations].Role\",\"mergedName\":\"Role\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[pim activations].Group\",\"mergedName\":\"Group\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[pim activations].Justification\",\"mergedName\":\"Justification\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[pim approvals].Approver\",\"mergedName\":\"Approver\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1b0\"},{\"originalName\":\"[pim approvals].ApprovalReason\",\"mergedName\":\"Approval Reason\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1b0\"},{\"originalName\":\"[pim activations].UserId\",\"mergedName\":\"UserId\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d1ae\"},{\"originalName\":\"[user table].User\"},{\"originalName\":\"[role table].Role\"},{\"originalName\":\"[group table].Group\"},{\"originalName\":\"[pim deactivations].CorrelationId\"},{\"originalName\":\"[pim deactivations].Group\"},{\"originalName\":\"[pim deactivations].Role\"},{\"originalName\":\"[pim deactivations].User\"},{\"originalName\":\"[pim deactivations].OperationName\"},{\"originalName\":\"[pim approvals].CorrelationId\"},{\"originalName\":\"[pim activations].OperationName\"},{\"originalName\":\"[pim activations].CorrelationId\"}]}",
+              "size": 0,
+              "title": "PIM Sessions",
+              "noDataMessage": "No PIM activity found for the specified parameters",
+              "showRefreshButton": true,
+              "exportParameterName": "SelectedSession",
+              "exportDefaultValue": "none",
+              "showExportToExcel": true,
+              "queryType": 7,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "UserId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true
+              },
+              "sortBy": []
+            },
+            "conditionalVisibility": {
+              "parameterName": "EntraGroup",
+              "comparison": "isNotEqualTo"
+            },
+            "showPin": false,
+            "name": "pim sessions group filter",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d19e\",\"mergeType\":\"outer\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim deactivations\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"},{\"id\":\"12c684d1-032c-4fbc-996a-117e5798d19f\",\"mergeType\":\"outer\",\"leftTable\":\"pim activations\",\"rightTable\":\"pim approvals\",\"leftColumn\":\"CorrelationId\",\"rightColumn\":\"CorrelationId\"}],\"projectRename\":[{\"originalName\":\"[pim activations].User\",\"mergedName\":\"User\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim activations].Type\",\"mergedName\":\"Type\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim activations].ActivationTime\",\"mergedName\":\"Activation Time\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim deactivations].DeactivationTime\",\"mergedName\":\"Deactivation Time\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim activations].Role\",\"mergedName\":\"Role\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim activations].Group\",\"mergedName\":\"Group\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim activations].Justification\",\"mergedName\":\"Justification\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[pim approvals].Approver\",\"mergedName\":\"Approver\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19f\"},{\"originalName\":\"[pim approvals].ApprovalReason\",\"mergedName\":\"Approval Reason\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19f\"},{\"originalName\":\"[pim activations].UserId\",\"mergedName\":\"UserId\",\"fromId\":\"12c684d1-032c-4fbc-996a-117e5798d19e\"},{\"originalName\":\"[user table].User\"},{\"originalName\":\"[role table].Role\"},{\"originalName\":\"[group table].Group\"},{\"originalName\":\"[pim approvals].CorrelationId\"},{\"originalName\":\"[pim deactivations].CorrelationId\"},{\"originalName\":\"[pim deactivations].Group\"},{\"originalName\":\"[pim deactivations].Role\"},{\"originalName\":\"[pim deactivations].User\"},{\"originalName\":\"[pim deactivations].OperationName\"},{\"originalName\":\"[pim activations].CorrelationId\"},{\"originalName\":\"[pim activations].OperationName\"}]}",
+              "size": 0,
+              "title": "PIM Sessions",
+              "noDataMessage": "No PIM activity found for the specified parameters",
+              "showRefreshButton": true,
+              "exportParameterName": "SelectedSession",
+              "exportDefaultValue": "none",
+              "showExportToExcel": true,
+              "queryType": 7,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "UserId",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 10000,
+                "filter": true
+              },
+              "sortBy": []
+            },
+            "conditionalVisibility": {
+              "parameterName": "EntraGroup",
+              "comparison": "isEqualTo"
+            },
+            "showPin": false,
+            "name": "pim sessions no group filter",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ],
+        "exportParameters": true
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "group"
+      },
+      "name": "group tab"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Activity During Selected PIM Session",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let SelectedSession = todynamic('{SelectedSession}');\r\nlet SessionStart = todatetime(SelectedSession.[\"Activation Time\"]);\r\nlet SessionEnd = coalesce(todatetime(SelectedSession.[\"Deactivation Time\"]), now());\r\nlet SessionUser = tostring(SelectedSession.[\"User\"]);\r\nlet SessionUserId = tostring(SelectedSession.[\"UserId\"]);\r\nAzureActivity\r\n| where TimeGenerated between (SessionStart .. SessionEnd)\r\n| project-reorder TimeGenerated\r\n| where Caller has_any (SessionUser, SessionUserId)",
+              "size": 0,
+              "title": "Azure Activity",
+              "noDataMessage": "No Azure activity found during selected PIM session",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "azure activity",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let SelectedSession = todynamic('{SelectedSession}');\r\nlet SessionStart = todatetime(SelectedSession.[\"Activation Time\"]);\r\nlet SessionEnd = coalesce(todatetime(SelectedSession.[\"Deactivation Time\"]), now());\r\nlet SessionUser = tostring(SelectedSession.[\"User\"]);\r\nlet SessionUserId = tostring(SelectedSession.[\"UserId\"]);\r\nAuditLogs\r\n| where TimeGenerated between (SessionStart .. SessionEnd)\r\n| where OperationName !in (\"Add member to role completed (PIM activation)\", \"Remove member from role (PIM activation expired)\")\r\n| project-reorder TimeGenerated\r\n| where InitiatedBy has_any (SessionUser, SessionUserId)",
+              "size": 0,
+              "title": "Entra Activity",
+              "noDataMessage": "No Entra activity found during selected PIM session",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "entra activity",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let SelectedSession = todynamic('{SelectedSession}');\r\nlet SessionStart = todatetime(SelectedSession.[\"Activation Time\"]);\r\nlet SessionEnd = coalesce(todatetime(SelectedSession.[\"Deactivation Time\"]), now());\r\nlet SessionUser = tostring(SelectedSession.[\"User\"]);\r\nlet SessionUserId = tostring(SelectedSession.[\"UserId\"]);\r\nOfficeActivity\r\n| where TimeGenerated between (SessionStart .. SessionEnd)\r\n| project-reorder TimeGenerated\r\n| where UserId =~ SessionUser or UserKey == SessionUserId\r\n| summarize Count=count() by OfficeWorkload, Operation\r\n| sort by Count desc",
+              "size": 0,
+              "title": "O365 Activity",
+              "noDataMessage": "No O365 activity found during selected PIM session",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Count",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blue"
+                    }
+                  }
+                ]
+              }
+            },
+            "customWidth": "33",
+            "name": "o365",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let SelectedSession = todynamic('{SelectedSession}');\r\nlet SessionStart = todatetime(SelectedSession.[\"Activation Time\"]);\r\nlet SessionEnd = coalesce(todatetime(SelectedSession.[\"Deactivation Time\"]), now());\r\nlet SessionUser = tostring(SelectedSession.[\"User\"]);\r\nlet SessionUserId = tostring(SelectedSession.[\"UserId\"]);\r\nlet UserDevice = DeviceLogonEvents\r\n| where TimeGenerated >= SessionStart - 1d\r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| distinct DeviceName, AccountName\r\n| where AccountName =~ SessionUser;\r\nDeviceNetworkEvents\r\n| where TimeGenerated between (SessionStart .. SessionEnd)\r\n| project-reorder TimeGenerated\r\n| where DeviceName in~ (UserDevice)\r\n| where isnotempty(RemoteUrl)\r\n| distinct Url = trim_start(@\"(https{0,1}:\\/\\/){0,1}(www\\.){0,1}\", RemoteUrl), DeviceName\r\n| extend Url = iff(Url endswith \".microsoft\", strcat(Url, \".com\"), Url)\r\n| extend Url = tostring(split(Url, '/')[0])\r\n| extend Domain = strcat(tostring(split(Url, '.')[-2]), '.', tostring(split(Url, '.')[-1]))\r\n| summarize Count=count() by DeviceName, Domain\r\n| sort by Count desc",
+              "size": 0,
+              "title": "Defender Url Activity",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Count",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "purple"
+                    }
+                  }
+                ]
+              },
+              "sortBy": []
+            },
+            "customWidth": "33",
+            "name": "defender url activity",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let SelectedSession = todynamic('{SelectedSession}');\r\nlet SessionStart = todatetime(SelectedSession.[\"Activation Time\"]);\r\nlet SessionEnd = coalesce(todatetime(SelectedSession.[\"Deactivation Time\"]), now());\r\nlet SessionUser = tostring(SelectedSession.[\"User\"]);\r\nlet SessionUserId = tostring(SelectedSession.[\"UserId\"]);\r\nlet UserDevice = DeviceLogonEvents\r\n| where TimeGenerated >= SessionStart - 1d\r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| distinct DeviceName, AccountName\r\n| where AccountName =~ SessionUser;\r\nZScalerWeb_Parser\r\n| where TimeGenerated between (SessionStart .. SessionEnd)\r\n| project-reorder TimeGenerated\r\n| where DeviceName in~ (UserDevice)\r\n| where isnotempty(RequestURL)\r\n| distinct Url = trim_start(@\"(https{0,1}:\\/\\/){0,1}(www\\.){0,1}\", RequestURL), DeviceName\r\n| extend Url = iff(Url endswith \".microsoft\", strcat(Url, \".com\"), Url)\r\n| extend Url = tostring(split(Url, '/')[0])\r\n| extend Domain = strcat(tostring(split(Url, '.')[-2]), '.', tostring(split(Url, '.')[-1]))\r\n| summarize Count=count() by DeviceName, Domain\r\n| sort by Count desc",
+              "size": 0,
+              "title": "Zscaler Url Activity",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Count",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "yellowDark"
+                    }
+                  }
+                ]
+              }
+            },
+            "customWidth": "33",
+            "name": "zscaler",
+            "styleSettings": {
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let SelectedSession = todynamic('{SelectedSession}');\r\nlet SessionStart = todatetime(SelectedSession.[\"Activation Time\"]);\r\nlet SessionEnd = coalesce(todatetime(SelectedSession.[\"Deactivation Time\"]), now());\r\nlet SessionUser = tostring(SelectedSession.[\"User\"]);\r\nlet SessionUserId = tostring(SelectedSession.[\"UserId\"]);\r\nOfficeActivity\r\n| where TimeGenerated between (SessionStart .. SessionEnd)\r\n| project-reorder TimeGenerated\r\n| where UserId =~ SessionUser\r\n| where OfficeWorkload == \"SharePoint\"",
+              "size": 0,
+              "title": "SharePoint Activity",
+              "noDataMessage": "No SharePoint activity found during selected PIM session",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "sharepoint",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "SelectedSession",
+        "comparison": "isNotEqualTo",
+        "value": "none"
+      },
+      "name": "drilldown group",
+      "styleSettings": {
+        "showBorder": true
+      }
+    }
+  ],
+  "fallbackResourceIds": [
+    
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
