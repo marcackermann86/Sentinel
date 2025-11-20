@@ -1,0 +1,4 @@
+arg("").Resources
+| where type =~ 'Microsoft.Storage/storageAccounts'
+| extend allowSharedKeyAccess = parse_json(properties).allowSharedKeyAccess
+| project subscriptionId, resourceGroup, name, allowSharedKeyAccess
