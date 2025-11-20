@@ -1,0 +1,4 @@
+MicrosoftAzureBastionAuditLogs
+| where TargetResourceId has "<VM NAME>"
+| extend TargetResource = tostring(split(TargetResourceId, "/")[-1])
+| project TimeGenerated, TargetResource, UserName, UserEmail, Protocol, ClientIpAddress, ClientPort
