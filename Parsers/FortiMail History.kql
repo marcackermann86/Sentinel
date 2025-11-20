@@ -1,0 +1,38 @@
+Syslog
+| where Facility == "local4" and SyslogMessage has "type=statistics"
+| project TimeGenerated, SyslogMessage
+| parse-kv SyslogMessage as (
+    type: string,
+    pri: string,
+    scope: string,
+    session_id: string,
+    client_name: string,
+    client_ip: string,
+    client_cc: string,
+    dst_ip: string,
+    from: string,
+    hfrom: string,
+    to: string,
+    polid: string,
+    domain: string,
+    mailer: string,
+    resolved: string,
+    src_type: string,
+    direction: string,
+    virus: string,
+    disposition: string,
+    classifier: string,
+    detail: string,
+    message_length: long,
+    subject: string,
+    message_id: string,
+    recv_time: datetime,
+    notif_delay: string,
+    scan_time: string,
+    xfer_time: string,
+    srcfolder: string,
+    read_status: string) 
+    with (pair_delimiter=' ', kv_delimiter='=', quote='"', greedy=true)
+| project-away SyslogMessage, pri
+| extend detail=trim(@"'", detail)
+| project-rename headerFrom=hfrom, sender=from, recipient=['to']
