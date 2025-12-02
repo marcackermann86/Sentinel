@@ -1,0 +1,290 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_SentinelToTeamsAlert_name": {
+            "defaultValue": "SentinelToTeamsAlert",
+            "type": "String"
+        },
+        "connections_azuresentinel_externalid": {
+            "defaultValue": "/subscriptions//resourceGroups//providers/Microsoft.Web/connections/azuresentinel",
+            "type": "String"
+        },
+        "connections_teams_externalid": {
+            "defaultValue": "/subscriptions//resourceGroups//providers/Microsoft.Web/connections/teams",
+            "type": "String"
+        },
+        "connections_azuresentinel_1_externalid": {
+            "defaultValue": "/subscriptions//resourceGroups//providers/Microsoft.Web/connections/azuresentinel-1",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_SentinelToTeamsAlert_name')]",
+            "location": "eastus",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "body": {
+                                    "callback_url": "@listCallbackUrl()"
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Parse_JSON": {
+                            "runAfter": {
+                                "Post_adaptive_card_and_wait_for_a_response": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('Post_adaptive_card_and_wait_for_a_response')",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "responseTime": {
+                                            "type": "string"
+                                        },
+                                        "responder": {
+                                            "type": "object",
+                                            "properties": {
+                                                "objectId": {
+                                                    "type": "string"
+                                                },
+                                                "tenantId": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "userPrincipalName": {
+                                                    "type": "string"
+                                                },
+                                                "displayName": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "submitActionId": {
+                                            "type": "string"
+                                        },
+                                        "messageId": {
+                                            "type": "string"
+                                        },
+                                        "messageLink": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "x": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "Post_adaptive_card_and_wait_for_a_response": {
+                            "runAfter": {
+                                "Switch": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "limit": {
+                                "timeout": "P3D"
+                            },
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['teams']['connectionId']"
+                                    }
+                                },
+                                "body": {
+                                    "notificationUrl": "@listCallbackUrl()",
+                                    "body": {
+                                        "messageBody": "{\n    \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\n    \"actions\": [\n        {\n            \"data\": {\n                \"x\": \"confirm\"\n            },\n            \"title\": \"Acknowledge & assign incident\",\n            \"type\": \"Action.Submit\"\n        }\n    ],\n    \"body\": [\n        {\n            \"type\": \"ColumnSet\",\n            \"columns\": [\n                {\n                    \"type\": \"Column\",\n                    \"items\": [\n                        {\n                            \"size\": \"Small\",\n                            \"style\": \"Person\",\n                            \"type\": \"Image\",\n                            \"url\": \"https://connectoricons-prod.azureedge.net/releases/v1.0.1391/1.0.1391.2130/azuresentinel/icon.png\"\n                        }\n                    ],\n                    \"width\": \"auto\"\n                },\n                {\n                    \"type\": \"Column\",\n                    \"items\": [\n                        {\n                            \"type\": \"TextBlock\",\n                            \"weight\": \"Bolder\",\n                            \"text\": \"@{triggerBody()?['object']?['properties']?['title']}\",\n                            \"wrap\": true,\n                            \"color\": \"@{variables('TitleColor')}\",\n                            \"size\": \"large\"\n                        },\n                        {\n                            \"type\": \"ColumnSet\",\n                            \"spacing\": \"None\",\n                            \"columns\": [\n                                {\n                                    \"type\": \"Column\",\n                                    \"items\": [\n                                        {\n                                            \"type\": \"TextBlock\",\n                                            \"weight\": \"Bolder\",\n                                            \"text\": \"ID: @{triggerBody()?['object']?['properties']?['incidentNumber']}\",\n                                            \"wrap\": false,\n                                            \"size\": \"Default\"\n                                        }\n                                    ],\n                                    \"width\": \"auto\"\n                                },\n                                {\n                                    \"type\": \"Column\",\n                                    \"items\": [\n                                        {\n                                            \"type\": \"TextBlock\",\n                                            \"weight\": \"Bolder\",\n                                            \"text\": \"Severity: @{triggerBody()?['object']?['properties']?['severity']}\",\n                                            \"wrap\": false,\n                                            \"size\": \"Default\"\n                                        }\n                                    ],\n                                    \"width\": \"auto\"\n                                }\n                            ]\n                        },\n                        {\n                            \"type\": \"TextBlock\",\n                            \"spacing\": \"None\",\n                            \"text\": \"Created: @{convertFromUtc(triggerBody()?['object']?['properties']?['createdTimeUtc'], 'Eastern Standard Time', 'U')}\",\n                            \"isSubtle\": true,\n                            \"wrap\": true\n                        },\n                        {\n                            \"text\": \"[Click here to view the Incident](@{triggerBody()?['object']?['properties']?['incidentUrl']})\",\n                            \"type\": \"TextBlock\",\n                            \"wrap\": true,\n                            \"spacing\": \"None\"\n                        },\n                        {\n            \"type\": \"TextBlock\",\n            \"spacing\": \"medium\",\n            \"text\": \"@{triggerBody()?['object']?['properties']?['description']}\",\n            \"size\": \"small\",\n            \"wrap\": true\n        }\n                    ],\n                    \"width\": \"stretch\"\n                }\n            ]\n        }\n    ],\n    \"type\": \"AdaptiveCard\",\n    \"version\": \"1.4\"\n}",
+                                        "recipient": {
+                                            "groupId": "",
+                                            "channelId": ""
+                                        }
+                                    }
+                                },
+                                "path": "/v1.0/teams/conversation/gatherinput/poster/Flow bot/location/@{encodeURIComponent('Channel')}/$subscriptions"
+                            }
+                        },
+                        "Switch": {
+                            "runAfter": {
+                                "Initialize_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "cases": {
+                                "Case": {
+                                    "case": "High",
+                                    "actions": {
+                                        "Set_variable_2": {
+                                            "type": "SetVariable",
+                                            "inputs": {
+                                                "name": "TitleColor",
+                                                "value": "Attention"
+                                            }
+                                        }
+                                    }
+                                },
+                                "Case 2": {
+                                    "case": "Medium",
+                                    "actions": {
+                                        "Set_variable": {
+                                            "type": "SetVariable",
+                                            "inputs": {
+                                                "name": "TitleColor",
+                                                "value": "Warning"
+                                            }
+                                        }
+                                    }
+                                },
+                                "Case 3": {
+                                    "case": "Low",
+                                    "actions": {
+                                        "Set_variable_1": {
+                                            "type": "SetVariable",
+                                            "inputs": {
+                                                "name": "TitleColor",
+                                                "value": "Good"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "default": {
+                                "actions": {}
+                            },
+                            "expression": "@triggerBody()?['object']?['properties']?['severity']",
+                            "type": "Switch"
+                        },
+                        "Initialize_variable": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "TitleColor",
+                                        "type": "string",
+                                        "value": "Default"
+                                    }
+                                ]
+                            }
+                        },
+                        "Update_incident": {
+                            "runAfter": {
+                                "Update_an_adaptive_card_in_a_chat_or_channel": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel-1']['connectionId']"
+                                    }
+                                },
+                                "method": "put",
+                                "body": {
+                                    "incidentArmId": "@triggerBody()?['object']?['id']",
+                                    "ownerAction": "Assign",
+                                    "owner": "@body('Parse_JSON')?['responder']?['userPrincipalName']",
+                                    "status": "Active"
+                                },
+                                "path": "/Incidents"
+                            }
+                        },
+                        "Update_an_adaptive_card_in_a_chat_or_channel": {
+                            "runAfter": {
+                                "Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['teams']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": {
+                                    "messageId": "@body('Parse_JSON')?['messageId']",
+                                    "recipient": {
+                                        "groupId": "",
+                                        "channelId": ""
+                                    },
+                                    "messageBody": "{\n    \"type\": \"AdaptiveCard\",\n    \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\n    \"version\": \"1.4\",\n    \"body\": [\n        {\n            \"type\": \"TextBlock\",\n            \"text\": \"Incident @{triggerBody()?['object']?['properties']?['incidentNumber']} acknowledged!\",\n            \"wrap\": true,\n            \"size\": \"Large\",\n            \"weight\": \"Bolder\",\n            \"color\": \"@{variables('TitleColor')}\"\n        },\n        {\n            \"type\": \"TextBlock\",\n            \"text\": \"Response Time: @{convertFromUtc(body('Parse_JSON')?['responseTime'], 'Eastern Standard Time', 'U')}\",\n            \"wrap\": true,\n            \"spacing\": \"none\",\n            \"isSubtle\": true\n        },\n        {\n            \"type\": \"TextBlock\",\n            \"text\": \"Assigned to @{body('Parse_JSON')?['responder']?['displayName']}\",\n            \"wrap\": true,\n            \"spacing\": \"none\"\n        },\n        {\n            \"type\": \"TextBlock\",\n            \"text\": \"[Click here to view the Incident](@{triggerBody()?['object']?['properties']?['incidentUrl']})\",\n            \"wrap\": true,\n            \"spacing\": \"none\"\n        }\n    ]\n}"
+                                },
+                                "path": "/v1.0/teams/conversation/updateAdaptivecard/poster/Flow bot/location/@{encodeURIComponent('Channel')}"
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "id": "/subscriptions//providers/Microsoft.Web/locations/eastus/managedApis/azuresentinel",
+                                "connectionId": "[parameters('connections_azuresentinel_externalid')]",
+                                "connectionName": "azuresentinel",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                }
+                            },
+                            "teams": {
+                                "id": "/subscriptions//providers/Microsoft.Web/locations/eastus/managedApis/teams",
+                                "connectionId": "[parameters('connections_teams_externalid')]",
+                                "connectionName": "teams",
+                                "connectionProperties": {}
+                            },
+                            "azuresentinel-1": {
+                                "id": "/subscriptions//providers/Microsoft.Web/locations/eastus/managedApis/azuresentinel",
+                                "connectionId": "[parameters('connections_azuresentinel_1_externalid')]",
+                                "connectionName": "azuresentinel-1",
+                                "connectionProperties": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
