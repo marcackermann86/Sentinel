@@ -1,0 +1,107 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c6c7d24b-bb30-461d-8853-25131bf5391f')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c6c7d24b-bb30-461d-8853-25131bf5391f')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2023-12-01-preview",
+            "properties": {
+                "displayName": "Create incidents from FortiMail System Quarantine events",
+                "description": "This rule creates custom alerts based on FortiMail quarantine events",
+                "severity": "Low",
+                "enabled": false,
+                "query": "let adminOpenedRegex = @\"^Administrator \\w+@<home domain> opened System quarantine message '\\w{14,19}-\\w{14,19}' from (\\d{1,3}\\.){4}$\";\r\nlet adminReleasedRegex = @\"^Web release: System Quarantine message '\\w{14,19}-\\w{14,19}' of folder \\w+ was released via web link from (\\d{1,3}\\.){4}$\";\r\nlet sandboxMsgRegex = @\"^Email \\w{14,19}-\\w{14,19} has been processed by FortiSandbox, \\d+s used$|^queued for FortiSandbox scan, since it contains .+$|^.* has been sent to FortiSandbox$\";\r\nlet fullRegex = strcat(\"^DMARC|^DKIM|^SPF|\", adminOpenedRegex, \"|\", adminReleasedRegex, \"|\", sandboxMsgRegex);\r\nFortiMailHistory\r\n| where disposition has \"System Quarantine\" and direction == \"in\"\r\n| join kind=leftouter (FortiMailSpam\r\n    | where not(msg matches regex fullRegex)\r\n    | summarize spamResults=make_list(msg) by session_id)\r\n    on session_id\r\n| join kind=leftouter (FortiMailVirus\r\n    | where not(msg matches regex fullRegex)\r\n    | summarize virusResults=make_list(msg) by session_id)\r\n    on session_id\r\n| project TimeGenerated, headerFrom, sender, recipient, subject, classifier, detail, spamResults, virusResults, country=client_cc, ip=client_ip, message_id, session_id, productName=\"FortiMail\"",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "startTimeUtc": null,
+                "tactics": [
+                    "Reconnaissance",
+                    "ResourceDevelopment",
+                    "InitialAccess"
+                ],
+                "techniques": [],
+                "subTechniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": false,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": {
+                    "alertDisplayNameFormat": "Email quarantined by FortiMail for {{detail}}",
+                    "alertDescriptionFormat": "An email was quarantined by FortiMail. Review the email and release if necessary."
+                },
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Mailbox",
+                        "fieldMappings": [
+                            {
+                                "identifier": "MailboxPrimaryAddress",
+                                "columnName": "recipient"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "MailMessage",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Sender",
+                                "columnName": "sender"
+                            },
+                            {
+                                "identifier": "Recipient",
+                                "columnName": "recipient"
+                            },
+                            {
+                                "identifier": "Subject",
+                                "columnName": "subject"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "MailMessage",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Sender",
+                                "columnName": "sender"
+                            },
+                            {
+                                "identifier": "Recipient",
+                                "columnName": "recipient"
+                            },
+                            {
+                                "identifier": "SenderIP",
+                                "columnName": "ip"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null,
+                "templateVersion": null
+            }
+        }
+    ]
+}
