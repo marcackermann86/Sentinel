@@ -1,0 +1,1019 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "## Azure Sign-in Monitoring\n---\n"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "85568f4e-9ad4-46c5-91d4-0ee1b2c8f3aa",
+            "version": "KqlParameterItem/1.0",
+            "name": "Category",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "jsonData": "[\"SignInLogs\", \"NonInteractiveUserSignInLogs\"]",
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ]
+          },
+          {
+            "id": "13f56671-7604-4427-a4d8-663f3da0cbc5",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 86400000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 300000,
+                  "createdTime": "2018-11-13T19:33:10.162Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 900000,
+                  "createdTime": "2018-11-13T19:33:10.164Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 1800000,
+                  "createdTime": "2018-11-13T19:33:10.164Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 3600000,
+                  "createdTime": "2018-11-13T19:33:10.164Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 14400000,
+                  "createdTime": "2018-11-13T19:33:10.164Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 43200000,
+                  "createdTime": "2018-11-13T19:33:10.164Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 86400000,
+                  "createdTime": "2018-11-13T19:33:10.165Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 172800000,
+                  "createdTime": "2018-11-13T19:33:10.166Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 259200000,
+                  "createdTime": "2018-11-13T19:33:10.166Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 604800000,
+                  "createdTime": "2018-11-13T19:33:10.166Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 1209600000,
+                  "createdTime": "2018-11-13T19:33:10.166Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                },
+                {
+                  "durationMs": 2592000000,
+                  "createdTime": "2018-11-13T19:33:10.167Z",
+                  "isInitialTime": false,
+                  "grain": 1,
+                  "useDashboardTimeRange": false
+                }
+              ],
+              "allowCustom": true
+            }
+          },
+          {
+            "id": "3b5cc420-8ad8-4523-ba28-a54910756794",
+            "version": "KqlParameterItem/1.0",
+            "name": "Apps",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "union SigninLogs, AADNonInteractiveUserSignInLogs\r\n//| where Category in ('{Category}')\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| summarize Count = count() by AppDisplayName\r\n| order by Count desc, AppDisplayName asc\r\n| project Value = AppDisplayName, Label = strcat(AppDisplayName, ' - ', Count, ' sign-ins'), Selected = false",
+            "typeSettings": {
+              "limitSelectTo": 10,
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "0611ecce-d6a0-4a6f-a1bc-6be314ae36a7",
+            "version": "KqlParameterItem/1.0",
+            "name": "UserNamePrefix",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| summarize Count = count() by UserDisplayName\r\n| order by Count desc, UserDisplayName asc\r\n| project Value = UserDisplayName, Label = strcat(UserDisplayName, ' - ', Count, ' sign-ins'), Selected = false\r\n| extend prefix = substring(Value, 0, 1)\r\n| distinct prefix\r\n| sort by prefix asc",
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "f7f7970b-58c1-474f-9043-62243d2d4edd",
+            "version": "KqlParameterItem/1.0",
+            "name": "Users",
+            "label": "UserName",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| summarize Count = count() by UserDisplayName\r\n| order by Count desc, UserDisplayName asc\r\n| project Value = UserDisplayName, Label = strcat(UserDisplayName, ' - ', Count, ' sign-ins'), Selected = false\r\n| where (substring(Value, 0, 1) in ({UserNamePrefix})) or ('*' in ({UserNamePrefix}))\r\n| sort by Value asc\r\n",
+            "typeSettings": {
+              "limitSelectTo": 10000000,
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 1"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend ErrorCode = Status.errorCode\r\n| extend SigninStatus = case(ErrorCode == 0, \"Success\", ErrorCode == 50058, \"Pending user action\",ErrorCode == 50140, \"Pending user action\", ErrorCode == 51006, \"Pending user action\", ErrorCode == 50059, \"Pending user action\",ErrorCode == 65001, \"Pending user action\", ErrorCode == 52004, \"Pending user action\", ErrorCode == 50055, \"Pending user action\", ErrorCode == 50144, \"Pending user action\", ErrorCode == 50072, \"Pending user action\", ErrorCode == 50074, \"Pending user action\", ErrorCode == 16000, \"Pending user action\", ErrorCode == 16001, \"Pending user action\", ErrorCode == 16003, \"Pending user action\", ErrorCode == 50127, \"Pending user action\", ErrorCode == 50125, \"Pending user action\", ErrorCode == 50129, \"Pending user action\", ErrorCode == 50143, \"Pending user action\", ErrorCode == 81010, \"Pending user action\", ErrorCode == 81014, \"Pending user action\", ErrorCode == 81012 ,\"Pending user action\", \"Failure\");\r\ndata\r\n| summarize Count = count() by SigninStatus\r\n| join kind = fullouter (datatable(SigninStatus:string)['Success', 'Pending action (Interrupts)', 'Failure']) on SigninStatus\r\n| project SigninStatus = iff(SigninStatus == '', SigninStatus1, SigninStatus), Count = iff(SigninStatus == '', 0, Count)\r\n| join kind = inner (data\r\n    | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by SigninStatus)\r\n    on SigninStatus\r\n| project-away SigninStatus1, TimeGenerated\r\n| extend Status = SigninStatus\r\n| union (\r\n    data \r\n    | summarize Count = count()\r\n    | extend jkey = 1\r\n    | join kind=inner (data\r\n        | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}\r\n        | extend jkey = 1) on jkey\r\n    | extend SigninStatus = 'All Sign-ins', Status = '*'    \r\n)\r\n| order by Count desc\r\n\r\n\r\n\r\n",
+        "size": 3,
+        "timeContextFromParameter": "TimeRange",
+        "exportFieldName": "Status",
+        "exportParameterName": "SigninStatus",
+        "exportDefaultValue": "*",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "SigninStatus",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "Count",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "blue",
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "secondaryContent": {
+            "columnMatch": "Trend",
+            "formatter": 9,
+            "formatOptions": {
+              "min": 0,
+              "palette": "blue",
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        }
+      },
+      "name": "query - 5"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend ErrorCode = Status.errorCode\r\n| extend SigninStatus = case(ErrorCode == 0, \"Success\", ErrorCode == 50058, \"Pending user action\",ErrorCode == 50140, \"Pending user action\", ErrorCode == 51006, \"Pending user action\", ErrorCode == 50059, \"Pending user action\",ErrorCode == 65001, \"Pending user action\", ErrorCode == 52004, \"Pending user action\", ErrorCode == 50055, \"Pending user action\", ErrorCode == 50144, \"Pending user action\", ErrorCode == 50072, \"Pending user action\", ErrorCode == 50074, \"Pending user action\", ErrorCode == 16000, \"Pending user action\", ErrorCode == 16001, \"Pending user action\", ErrorCode == 16003, \"Pending user action\", ErrorCode == 50127, \"Pending user action\", ErrorCode == 50125, \"Pending user action\", ErrorCode == 50129, \"Pending user action\", ErrorCode == 50143, \"Pending user action\", ErrorCode == 81010, \"Pending user action\", ErrorCode == 81014, \"Pending user action\", ErrorCode == 81012 ,\"Pending user action\", \"Failure\");\r\ndata\r\n| summarize Count=count() by Country\r\n| sort by Count desc\r\n",
+        "size": 3,
+        "title": "Logins by Country",
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "exportedParameters": [
+          {
+            "fieldName": "regionName",
+            "parameterName": "mapCountry",
+            "parameterType": 8,
+            "defaultValue": ""
+          }
+        ],
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "map",
+        "mapSettings": {
+          "locInfo": "CountryRegion",
+          "locInfoColumn": "Country",
+          "sizeSettings": "Count",
+          "sizeAggregation": "Sum",
+          "labelSettings": "Location",
+          "legendMetric": "Count",
+          "numberOfMetrics": 100,
+          "legendAggregation": "Sum",
+          "itemColorSettings": {
+            "nodeColorField": "Count",
+            "colorAggregation": "Sum",
+            "type": "heatmap",
+            "heatmapPalette": "greenRed"
+          },
+          "numberFormatSettings": {
+            "unit": 17,
+            "options": {
+              "style": "decimal",
+              "maximumFractionDigits": 2,
+              "maximumSignificantDigits": 3
+            }
+          }
+        }
+      },
+      "name": "query - 9",
+      "styleSettings": {
+        "margin": "0"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend ErrorCode = Status.errorCode\r\n| extend SigninStatus = case(ErrorCode == 0, \"Success\", ErrorCode == 50058, \"Pending user action\",ErrorCode == 50140, \"Pending user action\", ErrorCode == 51006, \"Pending user action\", ErrorCode == 50059, \"Pending user action\",ErrorCode == 65001, \"Pending user action\", ErrorCode == 52004, \"Pending user action\", ErrorCode == 50055, \"Pending user action\", ErrorCode == 50144, \"Pending user action\", ErrorCode == 50072, \"Pending user action\", ErrorCode == 50074, \"Pending user action\", ErrorCode == 16000, \"Pending user action\", ErrorCode == 16001, \"Pending user action\", ErrorCode == 16003, \"Pending user action\", ErrorCode == 50127, \"Pending user action\", ErrorCode == 50125, \"Pending user action\", ErrorCode == 50129, \"Pending user action\", ErrorCode == 50143, \"Pending user action\", ErrorCode == 81010, \"Pending user action\", ErrorCode == 81014, \"Pending user action\", ErrorCode == 81012 ,\"Pending user action\", \"Failure\");\r\ndata\r\n| summarize TotalCount = count(), SuccessCount = countif(SigninStatus == \"Success\"), FailureCount = countif(SigninStatus == \"Failure\"), InterruptCount = countif(SigninStatus == \"Pending user action\") by Country, Category\r\n| join kind=inner\r\n(\r\n    data    \r\n| make-series Trend = count() default = 0 on TimeGenerated in range({TimeRange:start}, {TimeRange:end}, {TimeRange:grain}) by Country\r\n| project-away TimeGenerated\r\n)\r\non Country\r\n| order by TotalCount desc, Country asc\r\n| project Country, TotalCount, SuccessCount,FailureCount,InterruptCount, Trend, Category\r\n| summarize arg_max(TotalCount, SuccessCount, FailureCount, InterruptCount) by Country, Category, tostring(Trend)\r\n| project Name = Country, ['Sign-in Count'] = TotalCount, Trend, ['Failure Count'] = FailureCount, ['Interrupt Count'] = InterruptCount, ['Success Count'] = SuccessCount, ['Success Rate'] = 1.0 * SuccessCount / TotalCount, Category\r\n| order by ['Sign-in Count'] desc, Name asc\r\n",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Sign-ins by Location",
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "exportMultipleValues": true,
+        "exportedParameters": [
+          {
+            "fieldName": "Name",
+            "parameterName": "LocationDetail",
+            "parameterType": 1
+          }
+        ],
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Sign-in Count",
+              "formatter": 8,
+              "formatOptions": {
+                "min": 0,
+                "palette": "blue"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal"
+                }
+              }
+            },
+            {
+              "columnMatch": "Trend",
+              "formatter": 9,
+              "formatOptions": {
+                "min": 0,
+                "palette": "blue"
+              }
+            },
+            {
+              "columnMatch": "Failure Count",
+              "formatter": 8,
+              "formatOptions": {
+                "min": 0,
+                "palette": "red"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal"
+                }
+              }
+            },
+            {
+              "columnMatch": "Interrupt Count",
+              "formatter": 8,
+              "formatOptions": {
+                "min": 0,
+                "palette": "orange"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal"
+                }
+              }
+            },
+            {
+              "columnMatch": "Success Count",
+              "formatter": 8,
+              "formatOptions": {
+                "min": 0,
+                "palette": "green"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal"
+                }
+              }
+            },
+            {
+              "columnMatch": "Success Rate",
+              "formatter": 5,
+              "numberFormat": {
+                "unit": 0,
+                "options": {
+                  "style": "percent"
+                }
+              }
+            },
+            {
+              "columnMatch": "Id",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Type",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ParentId",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 10000,
+          "filter": true
+        },
+        "sortBy": []
+      },
+      "showPin": true,
+      "name": "query - 8"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let selectedCountry = dynamic([{LocationDetail}]);\r\nlet details = dynamic({ \"Name\":\"\", \"Type\":\"*\"});\r\nlet data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| where Country in (selectedCountry) or City in (selectedCountry) or array_length(selectedCountry) == 0\r\n| extend ErrorCode = Status.errorCode\r\n| extend SigninStatus = case(ErrorCode == 0, \"Success\", ErrorCode == 50058, \"Pending user action\",ErrorCode == 50140, \"Pending user action\", ErrorCode == 51006, \"Pending user action\", ErrorCode == 50059, \"Pending user action\",ErrorCode == 65001, \"Pending user action\", ErrorCode == 52004, \"Pending user action\", ErrorCode == 50055, \"Pending user action\", ErrorCode == 50144, \"Pending user action\", ErrorCode == 50072, \"Pending user action\", ErrorCode == 50074, \"Pending user action\", ErrorCode == 16000, \"Pending user action\", ErrorCode == 16001, \"Pending user action\", ErrorCode == 16003, \"Pending user action\", ErrorCode == 50127, \"Pending user action\", ErrorCode == 50125, \"Pending user action\", ErrorCode == 50129, \"Pending user action\", ErrorCode == 50143, \"Pending user action\", ErrorCode == 81010, \"Pending user action\", ErrorCode == 81014, \"Pending user action\", ErrorCode == 81012 ,\"Pending user action\", \"Failure\");\r\ndata\r\n| top 200 by TimeGenerated desc\r\n| extend TimeFromNow = now() - TimeGenerated\r\n| extend TimeAgo = strcat(case(TimeFromNow < 2m, strcat(toint(TimeFromNow / 1m), ' seconds'), TimeFromNow < 2h, strcat(toint(TimeFromNow / 1m), ' minutes'), TimeFromNow < 2d, strcat(toint(TimeFromNow / 1h), ' hours'), strcat(toint(TimeFromNow / 1d), ' days')), ' ago')\r\n| extend ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| project User = UserDisplayName, ['User principal name'] = UserPrincipalName, ['Sign-in Status'] = strcat(case(SigninStatus == 'Success', '✔️', SigninStatus == 'Failure', '❌', '⏳'), ' ', SigninStatus), ['Sign-in Time'] = TimeAgo, App = AppDisplayName, ['Error code'] = ErrorCode, ['Result type'] = ResultType, ['Result signature'] = ResultSignature, ['Result description'] = ResultDescription, ['Conditional access policies'] = ConditionalAccessPolicies, ['Conditional access status'] = ConditionalAccessStatus, ['Operating system'] = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser, IPAddress, ['Country or region'] = Country, ['State'] = LocationDetails.state, ['City'] = LocationDetails.city, ['Time generated'] = TimeGenerated, Status, Category\r\n\r\n\r\n",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Sign-in by Location Drilldown",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Sign-in Status",
+              "formatter": 7,
+              "formatOptions": {
+                "linkTarget": "CellDetails",
+                "linkIsContextBlade": false
+              }
+            },
+            {
+              "columnMatch": "App",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Error code",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Result type",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Result signature",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Result description",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Conditional access policies",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Browser",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Time generated",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Status",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Category",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "TimeGenerated",
+              "formatter": 5
+            }
+          ],
+          "filter": true
+        }
+      },
+      "name": "query - 8"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let selectedCountry = dynamic([{LocationDetail}]);\r\nlet data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend Status = coalesce(Status_dynamic, parse_json(Status_string))\r\n| extend ErrorCode = tostring(Status.errorCode)\r\n| extend FailureReason = tostring(Status.failureReason) \r\n| where ErrorCode !in (\"0\",\"50058\",\"50148\",\"50140\", \"51006\", \"50059\", \"65001\", \"52004\", \"50055\", \"50144\",\"50072\", \"50074\", \"16000\",\"16001\", \"16003\", \"50127\", \"50125\", \"50129\",\"50143\", \"81010\", \"81014\", \"81012\") \r\n|summarize errCount = count() by ErrorCode, tostring(FailureReason), Category| sort by errCount, Category\r\n|project ['❌ Error Code'] = ErrorCode, ['Reason']= FailureReason, ['Error Count'] = toint(errCount), Category;\r\ndata",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Summary of top errors",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "exportFieldName": "❌ Error Code",
+        "exportParameterName": "ErrorCode",
+        "exportDefaultValue": "*",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Error Count",
+              "formatter": 8,
+              "formatOptions": {
+                "min": 0,
+                "palette": "orange"
+              }
+            },
+            {
+              "columnMatch": "Category",
+              "formatter": 5
+            }
+          ],
+          "filter": true,
+          "sortBy": [
+            {
+              "itemKey": "$gen_heatmap_Error Count_2",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_heatmap_Error Count_2",
+            "sortOrder": 2
+          }
+        ],
+        "mapSettings": {
+          "locInfo": "LatLong",
+          "sizeSettings": "Error Count",
+          "sizeAggregation": "Sum",
+          "legendMetric": "Error Count",
+          "legendAggregation": "Sum",
+          "itemColorSettings": {
+            "type": "heatmap",
+            "colorAggregation": "Sum",
+            "nodeColorField": "Error Count",
+            "heatmapPalette": "greenRed"
+          }
+        }
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "query - 5"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend Status = coalesce(Status_dynamic, parse_json(Status_string))\r\n| extend ErrorCode = Status.errorCode\r\n| extend FailureReason = tostring(Status.failureReason) \r\n| where ErrorCode !in (\"0\",\"50058\",\"50148\",\"50140\", \"51006\", \"50059\", \"65001\", \"52004\", \"50055\", \"50144\",\"50072\", \"50074\", \"16000\",\"16001\", \"16003\", \"50127\", \"50125\", \"50129\",\"50143\", \"81010\", \"81014\", \"81012\") \r\n| where '{ErrorCode}' == '*' or '{ErrorCode}' == ErrorCode\r\n| top 200 by TimeGenerated desc\r\n| extend TimeFromNow = now() - TimeGenerated\r\n| extend TimeAgo = strcat(case(TimeFromNow < 2m, strcat(toint(TimeFromNow / 1m), ' seconds'), TimeFromNow < 2h, strcat(toint(TimeFromNow / 1m), ' minutes'), TimeFromNow < 2d, strcat(toint(TimeFromNow / 1h), ' hours'), strcat(toint(TimeFromNow / 1d), ' days')), ' ago')\r\n| project User = UserDisplayName, IPAddress, ['❌ Error Code'] = ErrorCode, ['Sign-in Time'] = TimeAgo, App = AppDisplayName, ['Error code'] = ErrorCode, ['Result type'] = ResultType, ['Result signature'] = ResultSignature, ['Result description'] = ResultDescription, ['Conditional access policies'] = ConditionalAccessPolicies, ['Conditional access status'] = ConditionalAccessStatus, ['Operating system'] = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser, ['Country or region'] = LocationDetails.countryOrRegion, ['State'] = LocationDetails.state, ['City'] = LocationDetails.city, ['Time generated'] = TimeGenerated, Status, ['User principal name'] = UserPrincipalName, Category;\r\ndata\r\n\r\n\r\n",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Sign-ins with errors",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "❌ Error Code",
+              "formatter": 7,
+              "formatOptions": {
+                "linkTarget": "GenericDetails"
+              }
+            },
+            {
+              "columnMatch": "App",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Error code",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Result type",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Result signature",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Result description",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Conditional access policies",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Conditional access status",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Operating system",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Browser",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Time generated",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Status",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "User principal name",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Category",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 5000,
+          "filter": true
+        },
+        "sortBy": []
+      },
+      "customWidth": "50",
+      "name": "query - 5 - Copy"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend Status = coalesce(Status_dynamic, parse_json(Status_string))\r\n| extend ErrorCode = Status.errorCode\r\n| extend FailureReason = tostring(Status.failureReason) \r\n| where ErrorCode == \"0\"\r\n| summarize succCount = count() by UserDisplayName, Category\r\n| sort by succCount, Category\r\n| top 20 by succCount\r\n| project ['User'] = UserDisplayName, ['✔️ Success Count'] = toint(succCount);\r\ndata\r\n",
+        "size": 0,
+        "title": "Top 20 Users (Successful Logins)",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "✔️ Success Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "green"
+              }
+            },
+            {
+              "columnMatch": "Category",
+              "formatter": 5
+            }
+          ],
+          "filter": true
+        }
+      },
+      "customWidth": "50",
+      "name": "query - 7"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let data = union SigninLogs, AADNonInteractiveUserSignInLogs\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where UserDisplayName in ({Users}) or '*' in ({Users})\r\n| where AppDisplayName in ({Apps}) or '*' in ({Apps})\r\n| extend LocationDetails = coalesce(LocationDetails_dynamic, parse_json(LocationDetails_string)),\r\n         Status = coalesce(Status_dynamic, parse_json(Status_string)),\r\n         ConditionalAccessPolicies = coalesce(ConditionalAccessPolicies_dynamic, parse_json(ConditionalAccessPolicies_string)),\r\n         DeviceDetail = coalesce(DeviceDetail_dynamic, parse_json(DeviceDetail_string))\r\n| extend LocationLookup = geo_info_from_ip_address(IPAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(LocationDetails.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(LocationDetails.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| extend Status = coalesce(Status_dynamic, parse_json(Status_string))\r\n| extend ErrorCode = Status.errorCode\r\n| extend FailureReason = tostring(Status.failureReason) \r\n| where ErrorCode <> \"0\"\r\n| summarize failCount = count() by UserDisplayName, Category\r\n| sort by failCount, Category\r\n| top 20 by failCount\r\n| project ['User'] = UserDisplayName, ['❌ Failure Count'] = toint(failCount);\r\ndata",
+        "size": 0,
+        "title": "Top 20 Users (Failed Logins)",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "❌ Failure Count",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "red"
+              }
+            }
+          ],
+          "filter": true
+        }
+      },
+      "customWidth": "50",
+      "name": "query - 8"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AADUserRiskEvents\r\n| where RiskState == 'atRisk'\r\n| extend LocationLookup = geo_info_from_ip_address(IpAddress)\r\n| extend Country = coalesce(tostring(LocationLookup.country), \"Unknown Country\"),\r\n         State = coalesce(tostring(Location.state), tostring(LocationLookup.state), \"Unknown State\"),\r\n         City = coalesce(tostring(Location.city), tostring(LocationLookup.city), \"Unknown City\")\r\n| project-reorder UserDisplayName, UserPrincipalName, Activity, ActivityDateTime, RiskState, RiskLevel, RiskEventType, RiskDetail, Country, State, City, IpAddress, Source",
+        "size": 0,
+        "title": "CS - AzureAD - Risky User",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 12"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\r\n| where OperationName == 'Add member to role' and AADOperationType == 'Assign' and Result == 'success'\r\n| mv-expand TargetResources\r\n| extend modifiedProperties = parse_json(TargetResources).modifiedProperties\r\n| mv-expand modifiedProperties\r\n| extend DisplayName = tostring(parse_json(modifiedProperties).displayName), GroupName = tostring(parse_json(modifiedProperties).newValue)\r\n| where DisplayName in ('Role.WellKnownObjectName', 'Role.DisplayName')\r\n| where GroupName contains \"User Access Administrator\" or GroupName contains \"UserAccessAdministrator\" or GroupName contains \"user-access-admin\"\r\n| extend initByApp = parse_json(InitiatedBy).app, initByUser = parse_json(InitiatedBy).user\r\n| extend  InitiatedByDisplayName = case(isnotempty(initByApp.displayName), initByApp.displayName, isnotempty(initByUser.displayName), initByUser.displayName, \"not available\"),InitiatedUser = tolower(tostring(initByUser.userPrincipalName))\r\n| where isnotempty(InitiatedUser)\r\n| extend TargetUserPrincipalName = tostring(TargetResources.userPrincipalName)\r\n| extend ipAddress = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress)\r\n| extend GroupName = replace('\"','',GroupName)\r\n| project TimeGenerated,InitiatedUser, GroupName,TargetUserPrincipalName, Identity, ipAddress, AADOperationType, OperationName\r\n| join kind=inner (AADUserRiskEvents\r\n| where RiskState == 'atRisk'\r\n| where RiskLevel in ('medium', 'high')\r\n| extend UserPrincipalName = tolower(UserPrincipalName)\r\n| extend AdditionalInfo = parse_json(AdditionalInfo)\r\n| mv-expand bagexpansion=array AdditionalInfo\r\n| where AdditionalInfo contains \"clientIP\"\r\n| extend clientIP_ = tostring(parse_json(tostring(AdditionalInfo.Value)).clientIP)\r\n| extend IPlist = strcat(clientIP_,'|',IpAddress)) on $left.InitiatedUser==$right.UserPrincipalName \r\n| project  ActivityDateTime, DetectionTimingType, InitiatedUser, IPlist, GroupName,TargetUserPrincipalName, Identity, RiskEventType, RiskLevel, RiskState , AADOperationType, OperationName\r\n",
+        "size": 0,
+        "title": "CS - Risky User Elevated to User Access Admin",
+        "noDataMessage": "No risky users elevating to user access admin found",
+        "noDataMessageStyle": 3,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 10"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\r\n| where OperationName == 'Add member to role' and AADOperationType == 'Assign' and Result == 'success'\r\n| mv-expand TargetResources\r\n| extend modifiedProperties = parse_json(TargetResources).modifiedProperties\r\n| mv-expand modifiedProperties\r\n| extend DisplayName = tostring(parse_json(modifiedProperties).displayName), GroupName = tostring(parse_json(modifiedProperties).newValue)\r\n| where DisplayName in ('Role.WellKnownObjectName', 'Role.DisplayName')\r\n| where GroupName contains 'global-admins' or GroupName contains \"TenantAdmins\" or GroupName contains \"Global Administrator\"\r\n| extend initByApp = parse_json(InitiatedBy).app, initByUser = parse_json(InitiatedBy).user\r\n| extend  InitiatedByDisplayName = case(isnotempty(initByApp.displayName), initByApp.displayName, isnotempty(initByUser.displayName), initByUser.displayName, \"not available\"),InitiatedUser = tolower(tostring(initByUser.userPrincipalName))\r\n| where isnotempty(InitiatedUser)\r\n| extend TargetUserPrincipalName = tostring(TargetResources.userPrincipalName)\r\n| extend ipAddress = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress)\r\n| extend GroupName = replace('\"','',GroupName)\r\n| project TimeGenerated,InitiatedUser, GroupName,TargetUserPrincipalName, Identity, ipAddress, AADOperationType, OperationName\r\n| join kind=inner (AADUserRiskEvents\r\n| where RiskState == 'atRisk'\r\n| where RiskLevel in ('medium', 'high')\r\n| extend UserPrincipalName = tolower(UserPrincipalName)\r\n| extend AdditionalInfo = parse_json(AdditionalInfo)\r\n| mv-expand bagexpansion=array AdditionalInfo\r\n| where AdditionalInfo contains \"clientIP\"\r\n| extend clientIP_ = tostring(parse_json(tostring(AdditionalInfo.Value)).clientIP)\r\n| extend IPlist = strcat(clientIP_,'|',IpAddress)) on $left.InitiatedUser==$right.UserPrincipalName\r\n| project  ActivityDateTime, DetectionTimingType, InitiatedUser, IPlist, GroupName,TargetUserPrincipalName, Identity, RiskEventType, RiskLevel, RiskState , AADOperationType, OperationName ",
+        "size": 0,
+        "title": "CS - Risky User Elevated to Global Admin",
+        "noDataMessage": "No risky users elevating to global admin found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 11"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let exit_nodes = (externaldata(IPAddress:string)\r\n    [@\"https://raw.githubusercontent.com/SecOps-Institute/Tor-IP-Addresses/master/tor-exit-nodes.lst\"] with (format=\"txt\", ignoreFirstRecord=True));\r\nlet relay_nodes = (externaldata(IPAddress:string)\r\n    [@\"https://raw.githubusercontent.com/SecOps-Institute/Tor-IP-Addresses/master/tor-nodes.lst\"] with (format=\"txt\", ignoreFirstRecord=True));\r\nSigninLogs \r\n| summarize TotalEvents = count(), AppList = make_set(AppDisplayName),  StartTime = min(TimeGenerated), EndTime = max(TimeGenerated) by IPAddress, UserPrincipalName, ClientAppUsed, ConditionalAccessStatus, AuthenticationRequirement, RiskDetail \r\n| join kind= inner exit_nodes on $left.IPAddress == $right.IPAddress\r\n| join kind= inner relay_nodes on $left.IPAddress == $right.IPAddress\r\n| project StartTime , EndTime, IPAddress, UserPrincipalName, AppList, ClientAppUsed, ConditionalAccessStatus, AuthenticationRequirement, RiskDetail\r\n",
+        "size": 0,
+        "title": "CS – Sign-Ins from Tor Relay and Exit Nodes",
+        "noDataMessage": "No sign-ins found from tor relays or tor exit nodes",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 13"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let detectionTime = 1d;\r\nlet joinLookback = 14d;\r\nAuditLogs\r\n| where TimeGenerated > ago(detectionTime)\r\n| where LoggedByService =~ 'Core Directory'\r\n| where Category =~ 'ApplicationManagement'\r\n| where OperationName =~ 'Consent to application'\r\n| where TargetResources has 'mailboxsettings'\r\n| extend AppDisplayName = TargetResources.[0].displayName\r\n| extend AppClientId = tolower(TargetResources.[0].id)\r\n| where AppClientId !in ((externaldata(knownAppClientId:string, knownAppDisplayName:string)[@'https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Sample%20Data/Feeds/Microsoft.OAuth.KnownApplications.csv'] with (format='csv')))\r\n| extend ConsentFull = TargetResources[0].modifiedProperties[4].newValue\r\n| parse ConsentFull with * 'ConsentType: ' GrantConsentType ', Scope: ' GrantScope1 ']' *\r\n| where ConsentFull contains 'contacts.read' and ConsentFull contains 'user.read' and ConsentFull contains 'mail.read' and ConsentFull contains 'notes.read.all' and ConsentFull contains 'mailboxsettings.readwrite' and ConsentFull contains 'Files.ReadWrite.All'\r\n| where GrantConsentType != 'AllPrincipals' // NOTE: we are ignoring if OAuth application was granted to all users via an admin - but admin due diligence should be audited occasionally\r\n| extend GrantIpAddress = iff(isnotempty(InitiatedBy.user.ipAddress), InitiatedBy.user.ipAddress, InitiatedBy.app.ipAddress)\r\n| extend GrantInitiatedBy = iff(isnotempty(InitiatedBy.user.userPrincipalName),InitiatedBy.user.userPrincipalName, InitiatedBy.app.displayName)\r\n| extend GrantUserAgent = iff(AdditionalDetails[0].key =~ 'User-Agent', AdditionalDetails[0].value, '')\r\n| project TimeGenerated, GrantConsentType, GrantScope1, GrantInitiatedBy, AppDisplayName, GrantIpAddress, GrantUserAgent, AppClientId, OperationName, ConsentFull, CorrelationId\r\n| join kind = leftouter (AuditLogs\r\n| where TimeGenerated > ago(joinLookback)\r\n| where LoggedByService =~ 'Core Directory'\r\n| where Category =~ 'ApplicationManagement'\r\n| where OperationName =~ 'Add service principal'\r\n| extend AppClientId = tolower(TargetResources[0].id)\r\n| extend AppReplyURLs = iff(TargetResources[0].modifiedProperties[1].newValue has 'AddressType', TargetResources[0].modifiedProperties[1].newValue, '')\r\n| distinct AppClientId, tostring(AppReplyURLs)\r\n)\r\non AppClientId\r\n| join kind = innerunique (AuditLogs\r\n| where TimeGenerated > ago(joinLookback)\r\n| where LoggedByService =~ 'Core Directory'\r\n| where Category =~ 'ApplicationManagement'\r\n| where OperationName =~ 'Add OAuth2PermissionGrant' or OperationName =~ 'Add delegated permission grant'\r\n| extend GrantAuthentication = tostring(TargetResources[0].displayName)\r\n| extend GrantOperation = OperationName\r\n| project GrantAuthentication, GrantOperation, CorrelationId\r\n) on CorrelationId\r\n| project TimeGenerated, GrantConsentType, GrantScope1, GrantInitiatedBy, AppDisplayName, AppReplyURLs, GrantIpAddress, GrantUserAgent, AppClientId, GrantAuthentication, OperationName, GrantOperation, CorrelationId, ConsentFull",
+        "size": 0,
+        "title": "NT-020 [MDR] Azure AD - Suspicious App Consent - O365 Attack Toolkit",
+        "noDataMessage": "No suspicious app consents found",
+        "noDataMessageStyle": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 14"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AuditLogs\r\n| where OperationName =~ 'Disable Strong Authentication'\r\n| extend IPAddress = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress)\r\n| extend InitiatedByUser = iff(isnotempty(tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)), tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName), tostring(parse_json(tostring(InitiatedBy.app)).displayName))\r\n| extend Targetprop = todynamic(TargetResources)\r\n| extend TargetUser = tostring(Targetprop[0].userPrincipalName)",
+        "size": 0,
+        "title": "NT-067: [Hygiene] Azure AD - MFA Disabled",
+        "noDataMessage": "No MFA disable events found",
+        "noDataMessageStyle": 3,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 15"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let s_threshold = 30;\r\n  let l_threshold = 3;\r\n  let aadFunc = (tableName:string){\r\n  table(tableName)\r\n  | where OperationName =~ \"Sign-in activity\"\r\n  // Error codes that we want to look at as they are related to the use of incorrect password.\r\n  | where ResultType in (\"50126\", \"50053\" , \"50055\", \"50056\")\r\n  | extend DeviceDetail = todynamic(DeviceDetail), Status = todynamic(DeviceDetail), LocationDetails = todynamic(LocationDetails)\r\n  | extend OS = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser\r\n  | extend StatusCode = tostring(Status.errorCode), StatusDetails = tostring(Status.additionalDetails)\r\n  | extend LocationString = strcat(tostring(LocationDetails.countryOrRegion), \"/\", tostring(LocationDetails.state), \"/\", tostring(LocationDetails.city))\r\n  | summarize StartTime = min(TimeGenerated), EndTime = max(TimeGenerated), LocationCount=dcount(LocationString), Location = make_set(LocationString), \r\n  IPAddress = make_set(IPAddress), IPAddressCount = dcount(IPAddress), AppDisplayName = make_set(AppDisplayName), ResultDescription = make_set(ResultDescription), \r\n  Browser = make_set(Browser), OS = make_set(OS), SigninCount = count() by UserPrincipalName, Type                              \r\n  // Setting a generic threshold - Can be different for different environment\r\n  | where SigninCount > s_threshold and LocationCount >= l_threshold\r\n  | extend tostring(Location), tostring(IPAddress), tostring(AppDisplayName), tostring(ResultDescription), tostring(Browser), tostring(OS)\r\n  | distinct *\r\n  | extend timestamp = StartTime, AccountCustomEntity = UserPrincipalName, IPCustomEntity = IPAddress\r\n  };\r\n  let aadSignin = aadFunc(\"SigninLogs\");\r\n  let aadNonInt = aadFunc(\"AADNonInteractiveUserSignInLogs\");\r\n  union isfuzzy=true aadSignin, aadNonInt",
+        "size": 0,
+        "title": "CS - AzureAD - Distributed Password Cracking Attempts",
+        "noDataMessage": "No distributed password cracking attempts found",
+        "noDataMessageStyle": 3,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 16"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let s_threshold = 30;\r\n  let l_threshold = 3;\r\n  let aadFunc = (tableName:string){\r\n  table(tableName)\r\n  | where OperationName =~ \"Sign-in activity\"\r\n  // Error codes that we want to look at as they are related to the use of incorrect password.\r\n  | where ResultType in (\"50126\", \"50053\" , \"50055\", \"50056\")\r\n  | extend DeviceDetail = todynamic(DeviceDetail), Status = todynamic(DeviceDetail), LocationDetails = todynamic(LocationDetails)\r\n  | extend OS = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser\r\n  | extend StatusCode = tostring(Status.errorCode), StatusDetails = tostring(Status.additionalDetails)\r\n  | extend LocationString = strcat(tostring(LocationDetails.countryOrRegion), \"/\", tostring(LocationDetails.state), \"/\", tostring(LocationDetails.city))\r\n  | summarize StartTime = min(TimeGenerated), EndTime = max(TimeGenerated), LocationCount=dcount(LocationString), Location = make_set(LocationString), \r\n  IPAddress = make_set(IPAddress), IPAddressCount = dcount(IPAddress), AppDisplayName = make_set(AppDisplayName), ResultDescription = make_set(ResultDescription), \r\n  Browser = make_set(Browser), OS = make_set(OS), SigninCount = count() by UserPrincipalName, Type                              \r\n  // Setting a generic threshold - Can be different for different environment\r\n  | where SigninCount > s_threshold and LocationCount >= l_threshold\r\n  | extend tostring(Location), tostring(IPAddress), tostring(AppDisplayName), tostring(ResultDescription), tostring(Browser), tostring(OS)\r\n  | distinct *\r\n  | extend timestamp = StartTime, AccountCustomEntity = UserPrincipalName, IPCustomEntity = IPAddress\r\n  };\r\n  let aadSignin = aadFunc(\"SigninLogs\");\r\n  let aadNonInt = aadFunc(\"AADNonInteractiveUserSignInLogs\");\r\n  union isfuzzy=true aadSignin, aadNonInt",
+        "size": 0,
+        "title": "CS - AzureAD - Multiple Failed Sign-Ins followed by a Success",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 17"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let timeRange = 24h;\r\n let failureCountThreshold = 5;\r\n let authenticationWindow = 20m;\r\n let aadFunc = (tableName:string){\r\n  table(tableName)\r\n | where AppDisplayName has \"Azure Portal\"\r\n | extend\r\n      DeviceDetail = todynamic(DeviceDetail),\r\n      //Status = todynamic(Status),\r\n      LocationDetails = todynamic(LocationDetails)\r\n | extend\r\n      OS = tostring(DeviceDetail.operatingSystem),\r\n      Browser = tostring(DeviceDetail.browser),\r\n      //StatusCode = tostring(Status.errorCode),\r\n      //StatusDetails = tostring(Status.additionalDetails),\r\n      State = tostring(LocationDetails.state),\r\n      City = tostring(LocationDetails.city),\r\n      Region = tostring(LocationDetails.countryOrRegion)\r\n // Split out failure versus non-failure types\r\n | extend FailureOrSuccess = iff(ResultType in (\"0\", \"50125\", \"50140\", \"70043\", \"70044\"), \"Success\", \"Failure\")  \r\n // bin outcomes based on authenticationWindow\r\n | summarize take_anyif(UserPrincipalName, not(UserPrincipalName matches regex @\"[a-f\\d]+\\-[a-f\\d]+\\-[a-f\\d]+\\-[a-f\\d]+\\-[a-f\\d]+\")),\r\n      take_anyif(UserDisplayName, isnotempty(UserDisplayName)),  FailureOrSuccessCount = count() by  FailureOrSuccess, UserId, UserDisplayName, AppDisplayName, IPAddress, Browser, OS, State, City, Region, Type, CorrelationId, bin(TimeGenerated, authenticationWindow), ResultType\r\n // sort for sessionizing - by UserPrincipalName and time of the authentication outcome\r\n | sort by UserPrincipalName asc, TimeGenerated asc\r\n | serialize \r\n // sessionize into failure groupings until either the account changes or there is a success\r\n | extend SessionStartedUtc = row_window_session(TimeGenerated, timeRange, authenticationWindow, UserPrincipalName != prev(UserPrincipalName) or prev(FailureOrSuccess) == \"Success\")\r\n // count the failures in each session\r\n | summarize FailureCountBeforeSuccess=sumif(FailureOrSuccessCount, FailureOrSuccess == \"Failure\"), StartTime=min(TimeGenerated), EndTime=max(TimeGenerated), makelist(FailureOrSuccess), IPAddress = make_set(IPAddress), make_set(Browser), make_set(City), make_set(State), make_set(Region), make_set(ResultType) by SessionStartedUtc, UserPrincipalName, CorrelationId, AppDisplayName, UserId, Type\r\n // the session must not start with a success, and must end with one\r\n | where array_index_of(list_FailureOrSuccess, \"Success\") != 0\r\n | where array_index_of(list_FailureOrSuccess, \"Success\") == array_length(list_FailureOrSuccess) - 1\r\n | project-away SessionStartedUtc, list_FailureOrSuccess\r\n // where the number of failures before the success is above the threshold \r\n | where FailureCountBeforeSuccess >= failureCountThreshold \r\n // expand out ip for entity assignment\r\n | mv-expand IPAddress\r\n | extend IPAddress = tostring(IPAddress)\r\n | extend timestamp = StartTime, AccountCustomEntity = UserPrincipalName, IPCustomEntity = IPAddress \r\n };\r\n  let aadSignin = aadFunc(\"SigninLogs\");\r\n  let aadNonInt = aadFunc(\"AADNonInteractiveUserSignInLogs\");\r\n  union isfuzzy=true aadSignin, aadNonInt\r\n",
+        "size": 0,
+        "title": "CS - AzureAD - Potential Brute on Azure Portal",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 18"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let  signin_threshold = 10; \r\n//Make a list of IPs with failed AWS console logins\r\nlet aws_fails = AWSCloudTrail\r\n| where EventName == \"ConsoleLogin\"\r\n| extend LoginResult = tostring(parse_json(ResponseElements).ConsoleLogin) \r\n| where LoginResult != \"Success\"\r\n| where SourceIpAddress != \"127.0.0.1\"\r\n| summarize count() by SourceIpAddress\r\n| where count_ >  signin_threshold\r\n| summarize make_set(SourceIpAddress);\r\n//See if any of those IPs have sucessfully logged into Azure AD.\r\nSigninLogs\r\n| where ResultType in (\"0\", \"50125\", \"50140\")\r\n| where IPAddress in (aws_fails) \r\n| extend Reason = \"Multiple failed AWS Console logins from IP address\"\r\n| extend timestamp = TimeGenerated, AccountCustomEntity = UserPrincipalName, IPCustomEntity = IPAddress",
+        "size": 0,
+        "title": "CS - Failed AWS Console logons but success logon to AzureAD",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 19"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let signin_threshold = 10; \r\n//Make a list of IPs with AAD signin failures above our threshold\r\nlet aadFunc = (tableName:string){\r\nlet Suspicious_signins = \r\ntable(tableName)\r\n| where ResultType !in (\"0\", \"50125\", \"50140\")\r\n| where IPAddress !in (\"127.0.0.1\", \"::1\")\r\n| summarize count() by IPAddress\r\n| where count_ >  signin_threshold\r\n| summarize make_set(IPAddress);\r\nSuspicious_signins\r\n};\r\nlet aadSignin = aadFunc(\"SigninLogs\");\r\nlet aadNonInt = aadFunc(\"AADNonInteractiveUserSignInLogs\");\r\nlet Suspicious_signins = \r\nunion isfuzzy=true aadSignin, aadNonInt\r\n| summarize make_set(set_IPAddress);\r\n//See if any of those IPs have sucessfully logged into the AWS console\r\nAWSCloudTrail\r\n| where EventName =~ \"ConsoleLogin\"\r\n| extend LoginResult = tostring(parse_json(ResponseElements).ConsoleLogin) \r\n| where LoginResult =~ \"Success\"\r\n| where SourceIpAddress in (Suspicious_signins)\r\n| extend Reason = \"Multiple failed AAD logins from IP address\"\r\n| extend MFAUsed = tostring(parse_json(AdditionalEventData).MFAUsed)\r\n| parse UserIdentityPrincipalid with S ':' User1\r\n| extend User = case(isempty(UserIdentityUserName), User1,  UserIdentityUserName)  \r\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated) by Reason, LoginResult, EventTypeName, UserIdentityType, User, AWSRegion, SourceIpAddress, UserAgent, MFAUsed\r\n| extend timestamp = StartTimeUtc, AccountCustomEntity = User, IPCustomEntity = SourceIpAddress",
+        "size": 0,
+        "title": "CS - Failed AzureAD logons but success logon to AWS Console",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 20"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let timeRange = 6h;\r\n    let authenticationWindow = 1h;\r\n    let authenticationThreshold = 5;\r\n    SecurityEvent\r\n    | where TimeGenerated > ago(timeRange)\r\n    | where EventID == 4624 or EventID == 4625\r\n    | where IpAddress != \"-\" and isnotempty(Account)\r\n    | extend Outcome = iff(EventID == 4624, \"Success\", \"Failure\")\r\n    // bin outcomes into 5 minute windows to reduce the volume of data\r\n    | summarize OutcomeCount=count() by Account, IpAddress, Computer, Outcome, bin(TimeGenerated, 5m)\r\n    | project TimeGenerated, Account, IpAddress, Computer, Outcome, OutcomeCount\r\n    // sort ready for sessionizing - by account and time of the authentication outcome\r\n    | sort by Account asc, TimeGenerated asc\r\n    | serialize \r\n    // sessionize into failure groupings until either the account changes or there is a success\r\n    | extend SessionStartedUtc = row_window_session(TimeGenerated, timeRange, authenticationWindow, Account != prev(Account) or prev(Outcome) == \"Success\")\r\n    // count the failures in each session\r\n    | summarize FailureCountBeforeSuccess=sumif(OutcomeCount, Outcome == \"Failure\"), StartTime=min(TimeGenerated), EndTime=max(TimeGenerated), makelist(Outcome), makeset(Computer), makeset(IpAddress) by SessionStartedUtc, Account\r\n    // the session must not start with a success, and must end with one\r\n    | where array_index_of(list_Outcome, \"Success\") != 0\r\n    | where array_index_of(list_Outcome, \"Success\") == array_length(list_Outcome) - 1\r\n    | project-away SessionStartedUtc, list_Outcome \r\n    // where the number of failures before the success is above the threshold \r\n    | where FailureCountBeforeSuccess >= authenticationThreshold\r\n    // expand out ip and computer for customer entity assignment\r\n    | mvexpand set_IpAddress, set_Computer\r\n    | extend IpAddress = tostring(set_IpAddress), Computer = tostring(set_Computer)\r\n    | extend timestamp=StartTime, AccountCustomEntity=Account, HostCustomEntity=Computer, IPCustomEntity=IpAddress\r\n",
+        "size": 0,
+        "title": "CS - Multiple authentication failures followed by a success",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 21"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let lookBack = 1d;\r\nSigninLogs \r\n| where TimeGenerated >= ago(lookBack)\r\n| where ResultType == '50057' \r\n| where ResultDescription =~ 'User account is disabled. The account has been disabled by an administrator.' \r\n| where IPAddress !in (NT064_EXCLUDED_IPS)\r\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), LastFail = max(TimeGenerated), disabledAccountLoginAttempts =count(), \r\n    disabledAccountsTargeted = dcount(UserPrincipalName), applicationsTargeted = dcount(AppDisplayName), disabledAccountSet = make_set(UserPrincipalName), \r\n    applicationSet = make_set(AppDisplayName)\r\n    by IPAddress, bin(TimeGenerated, 1d)\r\n| order by disabledAccountLoginAttempts desc\r\n//----------------------------------------------------------------------------------------\r\n| join kind=inner(\r\n    SigninLogs\r\n    | where TimeGenerated >= ago(lookBack)\r\n    | where ResultType == 0\r\n    | summarize\r\n        LastSuccess=max(TimeGenerated),\r\n        successfulAccountSigninCount = dcount(UserPrincipalName),\r\n        successfulAccountSigninSet = make_set(UserPrincipalName, 15)\r\n        by IPAddress, bin(TimeGenerated, 1d)\r\n    )\r\n    on IPAddress  \r\n//----------------------------------------------------------------------------------------\r\n//only rare successes\r\n| where successfulAccountSigninCount == 1\r\n//only where success after fail\r\n| where LastSuccess > LastFail\r\n//only where success account does not match fail account\r\n| where array_length(set_difference(disabledAccountSet, successfulAccountSigninSet)) > 0\r\n| project StartTimeUtc, EndTimeUtc, IPAddress, disabledAccountLoginAttempts, disabledAccountsTargeted, disabledAccountSet, applicationSet, \r\n    successfulAccountSigninCount, successfulAccountSigninSet, LastSuccess, LastFail\r\n| order by disabledAccountLoginAttempts\r\n",
+        "size": 0,
+        "title": "NT-064: [MDR] Azure AD - Success from IPs Attempting Disabled Accounts",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 22"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let failureThreshold = 25; \r\nlet userExclusions = dynamic([\"dcod.tactest.prod@corespecialtyins.com\", \"no-reply@corespecialtyins.com\", \"duckcreeknextgen-dev@corespecialtyins.com\"]); \r\nSigninLogs \r\n// Exclude events for successful logins and ‘Keep me signed in’ \r\n| where TimeGenerated >= ago(1d) and ResultType !in (0, 50140) \r\n// Exclude a set of users and when the username isn't a full UPN \r\n| where UserPrincipalName contains '@' and UserPrincipalName !in (userExclusions) \r\n// Correlate login attempts by the RequestId (can also use CorrelationId) \r\n| summarize arg_max(TimeGenerated, *), RequestCount=count() by OriginalRequestId \r\n// Add column to include event count for each RequestId \r\n| extend Requests = strcat(\"Event Count \", RequestCount, \" - \", OriginalRequestId) \r\n// Count each failure session \r\n| summarize FailureCount=count(), FirstFail=min(TimeGenerated), LastFail=max(TimeGenerated), ClientApps=makeset(ClientAppUsed), Apps=makeset(AppDisplayName), RequestIds = make_set(Requests) by Account=UserPrincipalName, Reason=ResultDescription, IPAddress, Location \r\n// Exclude counts less than the threshold \r\n| where FailureCount >= failureThreshold \r\n| sort by FailureCount desc ",
+        "size": 0,
+        "title": "CS - AzureAD - Excessive Failed Sign-in Attempts",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 23"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let threshold = 35;\r\nlet aadFunc = (tableName: string) {\r\n    table(tableName)\r\n    | where ConditionalAccessStatus == 1 or ConditionalAccessStatus =~ \"failure\"\r\n    | extend\r\n        DeviceDetail = todynamic(DeviceDetail),\r\n        Status = todynamic(DeviceDetail),\r\n        LocationDetails = todynamic(LocationDetails)\r\n    | extend OS = DeviceDetail.operatingSystem, Browser = DeviceDetail.browser\r\n    | extend\r\n        State = tostring(LocationDetails.state),\r\n        City = tostring(LocationDetails.city),\r\n        Region = tostring(LocationDetails.countryOrRegion) \r\n    | extend\r\n        StatusCode = tostring(Status.errorCode),\r\n        StatusDetails = tostring(Status.additionalDetails)\r\n    | extend ConditionalAccessPolicies = todynamic(ConditionalAccessPolicies)\r\n    | extend ConditionalAccessPol0Name = tostring(ConditionalAccessPolicies[0].displayName)\r\n    | extend ConditionalAccessPol1Name = tostring(ConditionalAccessPolicies[1].displayName)\r\n    | extend ConditionalAccessPol2Name = tostring(ConditionalAccessPolicies[2].displayName)\r\n    | extend Status = strcat(StatusCode, \": \", ResultDescription) \r\n    | summarize\r\n        StartTime = min(TimeGenerated),\r\n        EndTime = max(TimeGenerated),\r\n        Status = make_list(Status),\r\n        StatusDetails = make_list(StatusDetails),\r\n        IPAddresses = make_list(IPAddress),\r\n        IPAddressCount = dcount(IPAddress),\r\n        CorrelationIds = make_list(CorrelationId) \r\n        by\r\n        UserPrincipalName,\r\n        AppDisplayName,\r\n        tostring(Browser),\r\n        tostring(OS),\r\n        City,\r\n        State,\r\n        Region,\r\n        ConditionalAccessPol0Name,\r\n        ConditionalAccessPol1Name,\r\n        ConditionalAccessPol2Name,\r\n        Type\r\n    | where IPAddressCount > threshold and StatusDetails !has \"MFA successfully completed\"\r\n    | mvexpand IPAddresses, Status, StatusDetails, CorrelationIds\r\n    | extend Status = strcat(Status, \" \", StatusDetails)\r\n    | summarize\r\n        IPAddresses = make_set(IPAddresses),\r\n        Status = make_set(Status),\r\n        CorrelationIds = make_set(CorrelationIds) \r\n        by\r\n        StartTime,\r\n        EndTime,\r\n        UserPrincipalName,\r\n        AppDisplayName,\r\n        tostring(Browser),\r\n        tostring(OS),\r\n        City,\r\n        State,\r\n        Region,\r\n        ConditionalAccessPol0Name,\r\n        ConditionalAccessPol1Name,\r\n        ConditionalAccessPol2Name,\r\n        IPAddressCount,\r\n        Type\r\n    | extend\r\n        timestamp = StartTime,\r\n        AccountCustomEntity = UserPrincipalName,\r\n        IPCustomEntity = tostring(IPAddresses)\r\n};\r\nlet aadSignin = aadFunc(\"SigninLogs\");\r\nlet aadNonInt = aadFunc(\"AADNonInteractiveUserSignInLogs\");\r\nunion isfuzzy=true aadSignin, aadNonInt",
+        "size": 0,
+        "title": "CS - Azure AD - Conditional Access Rule Bypass Attempt",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 24"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let starttime = 8d;\r\nlet endtime = 1d;\r\nlet threshold = 0.333;\r\nlet countlimit = 50;\r\nSecurityEvent\r\n| where TimeGenerated >= ago(endtime)\r\n| where EventID == 4625 and AccountType =~ \"User\"\r\n| where IpAddress !in (\"127.0.0.1\", \"::1\")\r\n| summarize StartTime = min(TimeGenerated), EndTime = max(TimeGenerated), CountToday = count() by EventID, Account, LogonTypeName, SubStatus, AccountType, Computer, WorkstationName, IpAddress, Process\r\n| join kind=leftouter (\r\nSecurityEvent \r\n| where TimeGenerated between (ago(starttime) .. ago(endtime))\r\n|where EventID == 4625 and AccountType =~ \"User\"\r\n| where IpAddress !in (\"127.0.0.1\", \"::1\")\r\n| summarize CountPrev7day = count() by EventID, Account, LogonTypeName, SubStatus, AccountType, Computer, WorkstationName, IpAddress\r\n  ) on EventID, Account, LogonTypeName, SubStatus, AccountType, Computer, WorkstationName, IpAddress\r\n  | where CountToday >= coalesce(CountPrev7day,0)*threshold and CountToday >= countlimit\r\n  //SubStatus Codes are detailed here - https://docs.microsoft.com/windows/security/threat-protection/auditing/event-4625\r\n  | extend Reason = case(\r\n  SubStatus =~ '0xC000005E', 'There are currently no logon servers available to service the logon request.',\r\n  SubStatus =~ '0xC0000064', 'User logon with misspelled or bad user account',\r\n  SubStatus =~ '0xC000006A', 'User logon with misspelled or bad password',    \r\n  SubStatus =~ '0xC000006D', 'Bad user name or password',\r\n  SubStatus =~ '0xC000006E', 'Unknown user name or bad password',\r\n  SubStatus =~ '0xC000006F', 'User logon outside authorized hours',\r\n  SubStatus =~ '0xC0000070', 'User logon from unauthorized workstation',\r\n  SubStatus =~ '0xC0000071', 'User logon with expired password',\r\n  SubStatus =~ '0xC0000072', 'User logon to account disabled by administrator',\r\n  SubStatus =~ '0xC00000DC', 'Indicates the Sam Server was in the wrong state to perform the desired operation',  \r\n  SubStatus =~ '0xC0000133', 'Clocks between DC and other computer too far out of sync',\r\n  SubStatus =~ '0xC000015B', 'The user has not been granted the requested logon type (aka logon right) at this machine',\r\n  SubStatus =~ '0xC000018C', 'The logon request failed because the trust relationship between the primary domain and the trusted domain failed',\r\n  SubStatus =~ '0xC0000192', 'An attempt was made to logon, but the Netlogon service was not started',\r\n  SubStatus =~ '0xC0000193', 'User logon with expired account',\r\n  SubStatus =~ '0xC0000224', 'User is required to change password at next logon',\r\n  SubStatus =~ '0xC0000225', 'Evidently a bug in Windows and not a risk',\r\n  SubStatus =~ '0xC0000234', 'User logon with account locked',\r\n  SubStatus =~ '0xC00002EE', 'Failure Reason: An Error occurred during Logon',\r\n  SubStatus =~ '0xC0000413', 'Logon Failure: The machine you are logging onto is protected by an authentication firewall. The specified account is not allowed to authenticate to the machine',\r\n  strcat('Unknown reason substatus: ', SubStatus))\r\n  | extend WorkstationName = iff(WorkstationName == \"-\" or isempty(WorkstationName), Computer , WorkstationName) \r\n  | project StartTime, EndTime, EventID, Account, LogonTypeName, SubStatus, Reason, AccountType, Computer, WorkstationName, IpAddress, CountToday, CountPrev7day, Avg7Day = round(CountPrev7day*1.00/7,2), Process\r\n  | summarize StartTime = min(StartTime), EndTime = max(EndTime), Computer = make_set(Computer,128), IpAddressList = make_set(IpAddress,128), sum(CountToday), sum(CountPrev7day), avg(Avg7Day) \r\n  by EventID, Account, LogonTypeName, SubStatus, Reason, AccountType, WorkstationName, Process\r\n  | order by sum_CountToday desc nulls last \r\n  | extend timestamp = StartTime, AccountCustomEntity = Account, HostCustomEntity = WorkstationName\r\n",
+        "size": 0,
+        "title": "CS - Excessive Windows logon failures",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 25"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let PerUserThreshold = 5;\r\n  let TotalThreshold = 100;\r\n  let action = dynamic([\"change\", \"changed\", \"reset\"]);\r\n  let pWord = dynamic([\"password\", \"credentials\"]);\r\n  let PasswordResetMultiDataSource =\r\n  (union isfuzzy=true\r\n  (//Password reset events\r\n  //4723: An attempt was made to change an account's password\r\n  //4724: An attempt was made to reset an accounts password\r\n  SecurityEvent\r\n  | where EventID in (\"4723\",\"4724\")\r\n  | project TimeGenerated, Computer, AccountType, Account, Type, TargetUserName),\r\n  (//Password reset events\r\n  //4723: An attempt was made to change an account's password\r\n  //4724: An attempt was made to reset an accounts password\r\n  WindowsEvent\r\n  | where EventID in (\"4723\",\"4724\")\r\n  | extend SubjectUserSid = tostring(EventData.SubjectUserSid)\r\n  | extend TargetUserName = tostring(EventData.TargetUserName)\r\n  | extend Account =  strcat(tostring(EventData.SubjectDomainName),\"\\\\\", tostring(EventData.SubjectUserName))\r\n  | extend AccountType=case(Account endswith \"$\" or SubjectUserSid in (\"S-1-5-18\", \"S-1-5-19\", \"S-1-5-20\"), \"Machine\", isempty(SubjectUserSid), \"\", \"User\")\r\n  | project TimeGenerated, Computer, AccountType, Account, Type, TargetUserName),\r\n  (//Azure Active Directory Password reset events\r\n  AuditLogs\r\n  | where Category =~ 'UserManagement'\r\n  | where OperationName !contains ('Self-service')\r\n  | where OperationName has_any (pWord) and OperationName has_any (action) and Result =~ \"success\"\r\n  | extend AccountType = tostring(TargetResources[0].type), Account = tostring(TargetResources[0].userPrincipalName), \r\n  TargetUserName = tolower(tostring(TargetResources[0].displayName))\r\n  | project TimeGenerated, AccountType, Account, Computer = \"\", Type),\r\n  (//OfficeActive ActiveDirectory Password reset events\r\n  OfficeActivity\r\n  | where OfficeWorkload == \"AzureActiveDirectory\" \r\n  | where (ExtendedProperties has_any (pWord) or ModifiedProperties has_any (pWord)) and (ExtendedProperties has_any (action) or ModifiedProperties has_any (action))\r\n  | extend AccountType = UserType, Account = OfficeObjectId \r\n  | project TimeGenerated, AccountType, Account, Type, Computer = \"\"),\r\n  (// Unix syslog password reset events\r\n  Syslog\r\n  | where Facility in (\"auth\",\"authpriv\")\r\n  | where SyslogMessage has_any (pWord) and SyslogMessage has_any (action)\r\n  | extend AccountType = iif(SyslogMessage contains \"root\", \"Root\", \"Non-Root\")\r\n  | where SyslogMessage matches regex \".*password changed for.*\"\r\n  | parse SyslogMessage with * \"password changed for\" Account\r\n  | project TimeGenerated, AccountType, Account, Computer = HostName, Type)\r\n  );\r\n  let pwrmd = PasswordResetMultiDataSource\r\n  | project TimeGenerated, Computer, AccountType, Account, Type, TargetUserName;\r\n  (union isfuzzy=true  \r\n  (pwrmd\r\n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), Computerlist = make_set(Computer, 25), AccountType = make_set(AccountType, 25), Computer = arg_max(Computer , TimeGenerated), TargetUserList = make_set(TargetUserName, 25), TargetUserName = arg_max(TargetUserName, TimeGenerated), Total=count() by Account, Type\r\n  | where Total > PerUserThreshold\r\n  | extend ResetPivot = \"PerUserReset\"),  \r\n  (pwrmd\r\n  | summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), ComputerList = make_set(Computer, 25), AccountList = make_set(Account, 25), AccountType = make_set(AccountType, 25), Computer = arg_max(Computer , TimeGenerated), TargetUserList = make_set(TargetUserName, 25), TargetUserName = arg_max(TargetUserName, TimeGenerated), Total=count() by Type\r\n  | where Total > TotalThreshold\r\n  | extend ResetPivot = \"TotalUserReset\")\r\n  )\r\n  | extend timestamp = StartTimeUtc, AccountCustomEntity = Account, HostCustomEntity = Computer\r\n| where Computer != \"vm-coreado000\" and TargetUserName != \"AzDevOps\" ",
+        "size": 0,
+        "title": "CS - Multiple Password Reset by user",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 26"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let EventIDList = dynamic(['4723', '4724']);\r\nlet ingested_lookback = 1d;\r\nlet generated_lookback = 2d;\r\nlet alert_bin=1d;\r\nSecurityEvent\r\n| where TimeGenerated between ( ago(generated_lookback) .. now()) and ingestion_time() > ago(ingested_lookback)\r\n| where EventID in (EventIDList)\r\n| where AccountType == 'User'\r\n| where tolower(Account) matches regex tolower(EXCLUDED_USER_ACCOUNTS) == false\r\n| where tolower(TargetAccount) matches regex tolower(NT042_EXCLUDED_TARGET_ACCOUNT) == false\r\n| project TimeGenerated, Computer, Account, Activity, TargetAccount, SubjectUserSid, SubjectUserName, _ItemId\r\n| summarize Events = make_set(pack_all()), EventCount = count(), TargetAccounts = make_set(TargetAccount), NumberUniqueUsers=dcount(TargetAccount), ItemIds=make_set(_ItemId) by  SubjectUserSid, SubjectUserName, Computer, bin(TimeGenerated, alert_bin)\r\n| where EventCount >= PASSWORD_RESETS_THRESHOLD\r\n| extend TargetAccounts=tostring(TargetAccounts)",
+        "size": 0,
+        "title": "NT-042: [RBA] Windows - Multiple Password Resets",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "query - 27"
+    }
+  ],
+  "fallbackResourceIds": [
+    ""
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
