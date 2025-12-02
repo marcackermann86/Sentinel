@@ -1,0 +1,293 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "value::all"
+        ],
+        "parameters": [
+          {
+            "id": "26d2fea7-3646-4993-b79f-6722f9ef8ddb",
+            "version": "KqlParameterItem/1.0",
+            "name": "DefaultSubscription_Internal",
+            "type": 1,
+            "isRequired": true,
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\n| take 1\n| project subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "isHiddenWhenLocked": true,
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "55d3ab63-6e1f-4d02-8d9e-2225526689c7",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "query": "summarize by subscriptionId\n| project value = strcat(\"/subscriptions/\", subscriptionId), label = subscriptionId, selected = iff(subscriptionId =~ '{DefaultSubscription_Internal}', true, false)",
+            "crossComponentResources": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "95a45501-31b5-4ea2-bcb3-eb208e0080e2",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspace",
+            "type": 5,
+            "isRequired": true,
+            "query": "where type =~ \"microsoft.operationalinsights/workspaces\"\r\n| where '{Subscription}' has subscriptionId",
+            "crossComponentResources": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "showDefault": false
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "7d597ad7-4a2a-45ed-a4fe-7ee32de0fc22",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time Range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ],
+              "allowCustom": true
+            }
+          },
+          {
+            "id": "9a199167-2dde-49dd-8f01-23e9d1fa8151",
+            "version": "KqlParameterItem/1.0",
+            "name": "InternalRG",
+            "type": 1,
+            "isRequired": true,
+            "query": "where type =~ \"microsoft.operationalinsights/workspaces\"\r\n| where id =~  \"{Workspace}\"\r\n| project resourceGroup",
+            "crossComponentResources": [
+              "{Workspace}"
+            ],
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          }
+        ],
+        "style": "pills",
+        "queryType": 1,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "100",
+      "name": "WSSelector"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"/subscriptions/{Subscription:id}/resourceGroups/{InternalRG}/providers/Microsoft.OperationalInsights/workspaces/{Workspace:name}/providers/Microsoft.SecurityInsights/alertRuleTemplates\",\"urlParams\":[{\"key\":\"api-version\",\"value\":\"2021-10-01-preview\"},{\"key\":\"\",\"value\":\"\"}],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.value\",\"columns\":[{\"path\":\"$.properties.displayName\",\"columnid\":\"RuleName\"},{\"path\":\"$.properties.description\",\"columnid\":\"Description\"},{\"path\":\"$.properties.query\",\"columnid\":\"Query\"},{\"path\":\"$.properties.tactics\",\"columnid\":\"Tactics\"},{\"path\":\"$.properties.severity\",\"columnid\":\"Severity\"},{\"path\":\"$.properties.queryPeriod\",\"columnid\":\"QueryPeriod\"},{\"path\":\"$.properties.queryFrequency\",\"columnid\":\"QueryFrequency\"},{\"path\":\"$.properties.status\",\"columnid\":\"Status\"},{\"path\":\"$.properties.query\",\"columnid\":\"TableUsed\"},{\"path\":\"$.properties.version\",\"columnid\":\"Version\"},{\"path\":\"$.properties.lastUpdatedDateUTC\",\"columnid\":\"LastModifiedOn\"},{\"path\":\"$.name\",\"columnid\":\"TemplateId\"},{\"path\":\"$.kind\",\"columnid\":\"AnalyticKind\"}]}}]}",
+        "size": 0,
+        "title": "All Analytic rule templates",
+        "noDataMessage": "No templates are defined ",
+        "exportToExcelOptions": "all",
+        "queryType": 12,
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "RuleName",
+              "formatter": 1
+            },
+            {
+              "columnMatch": "Description",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Enabled",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "true",
+                    "representation": "success",
+                    "text": "Enabled"
+                  },
+                  {
+                    "operator": "Default",
+                    "representation": "disabled",
+                    "text": "Disabled"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "Tactics",
+              "formatter": 5,
+              "formatOptions": {
+                "customColumnWidthSetting": "0ch"
+              }
+            }
+          ],
+          "rowLimit": 512,
+          "labelSettings": [
+            {
+              "columnId": "RuleName",
+              "label": "Rule name"
+            }
+          ]
+        },
+        "graphSettings": {
+          "type": 0
+        },
+        "mapSettings": {
+          "locInfo": "LatLong"
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "0",
+        "comparison": "isEqualTo",
+        "value": "0"
+      },
+      "name": "All Analytic rules templates"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"/subscriptions/{Subscription:id}/resourceGroups/{InternalRG}/providers/Microsoft.OperationalInsights/workspaces/{Workspace:name}/providers/Microsoft.SecurityInsights/alertRules\",\"urlParams\":[{\"key\":\"api-version\",\"value\":\"2021-10-01-preview\"}],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.value\",\"columns\":[{\"path\":\"$.properties.displayName\",\"columnid\":\"Name\"},{\"path\":\"$.properties.lastModifiedUtc\",\"columnid\":\"LastModified\"},{\"path\":\"$.properties.alertRuleTemplateName\",\"columnid\":\"TemplateId\"},{\"path\":\"$.properties.templateVersion\",\"columnid\":\"InUseVersion\"}]}}]}",
+        "size": 0,
+        "title": "All enabled/disabled analytics",
+        "queryType": 12,
+        "gridSettings": {
+          "rowLimit": 512
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "0",
+        "comparison": "isEqualTo",
+        "value": "0"
+      },
+      "name": "All analytics enabled/disabled"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"04b1f54c-d261-4855-9770-bfec0db9605d\",\"mergeType\":\"innerunique\",\"leftTable\":\"All Analytic rules templates\",\"rightTable\":\"All analytics enabled/disabled\",\"leftColumn\":\"TemplateId\",\"rightColumn\":\"TemplateId\"}],\"projectRename\":[{\"originalName\":\"[All Analytic rules templates].TemplateId\",\"mergedName\":\"TemplateId\",\"fromId\":\"04b1f54c-d261-4855-9770-bfec0db9605d\"},{\"originalName\":\"[All analytics enabled/disabled].Name\",\"mergedName\":\"Name\",\"fromId\":\"04b1f54c-d261-4855-9770-bfec0db9605d\"},{\"originalName\":\"[All Analytic rules templates].Version\",\"mergedName\":\"TemplateVersion\",\"fromId\":\"04b1f54c-d261-4855-9770-bfec0db9605d\"},{\"originalName\":\"[All analytics enabled/disabled].InUseVersion\",\"mergedName\":\"InUseVersion\",\"fromId\":\"04b1f54c-d261-4855-9770-bfec0db9605d\"},{\"originalName\":\"[Added column]\",\"mergedName\":\"Update\",\"fromId\":null,\"isNewItem\":true,\"newItemData\":[{\"criteriaContext\":{\"leftOperand\":\"InUseVersion\",\"operator\":\"!=\",\"rightValType\":\"column\",\"rightVal\":\"TemplateVersion\",\"resultValType\":\"expression\",\"resultVal\":\"parse_version(TemplateVersion) > parse_version(InUseVersion)\"}},{\"criteriaContext\":{\"operator\":\"Default\",\"rightValType\":\"column\",\"resultValType\":\"static\",\"resultVal\":\"false\"}}]},{\"originalName\":\"[All Analytic rules templates].RuleName\"},{\"originalName\":\"[All Analytic rules templates].Description\"},{\"originalName\":\"[All Analytic rules templates].Query\"},{\"originalName\":\"[All Analytic rules templates].Tactics\"},{\"originalName\":\"[All Analytic rules templates].Severity\"},{\"originalName\":\"[All Analytic rules templates].QueryPeriod\"},{\"originalName\":\"[All Analytic rules templates].QueryFrequency\"},{\"originalName\":\"[All Analytic rules templates].Status\"},{\"originalName\":\"[All Analytic rules templates].TableUsed\"},{\"originalName\":\"[All Analytic rules templates].LastModifiedOn\"},{\"originalName\":\"[All Analytic rules templates].AnalyticKind\"},{\"originalName\":\"[All analytics enabled/disabled].LastModified\"},{\"originalName\":\"[All analytics enabled/disabled].TemplateId\"}]}",
+        "size": 2,
+        "queryType": 7,
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "TemplateId",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "Update",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "contains",
+                    "thresholdValue": "false",
+                    "representation": "success",
+                    "text": "Up to date"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "pending",
+                    "text": "Update available"
+                  }
+                ]
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_thresholds_Update_4",
+              "sortOrder": 2
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "Name",
+              "label": "Analytic Rule Name"
+            },
+            {
+              "columnId": "TemplateVersion",
+              "label": "Template Version"
+            },
+            {
+              "columnId": "InUseVersion",
+              "label": "Current Version"
+            },
+            {
+              "columnId": "Update",
+              "label": "Update Available"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_thresholds_Update_4",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "name": "query - 4 - Copy"
+    }
+  ],
+  "fallbackResourceIds": [
+    ""
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
