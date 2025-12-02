@@ -1,0 +1,832 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "17f4c5ab-be6a-493b-9006-f089b503947c",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "TIme Range",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": {
+              "durationMs": 1209600000
+            }
+          },
+          {
+            "id": "c8ee80a0-bf02-4d09-88f0-2b81ada02275",
+            "version": "KqlParameterItem/1.0",
+            "name": "SenderDomain",
+            "label": "Sender Domain",
+            "type": 1,
+            "isRequired": true,
+            "value": "corespecialty.com"
+          },
+          {
+            "id": "4eaebc97-b3d3-44a9-ab5f-c22ed704bd2b",
+            "version": "KqlParameterItem/1.0",
+            "name": "EmailFilter",
+            "label": "Email Filter",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "\"",
+            "delimiter": ",",
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "jsonData": "[\r\n    {\"label\":\"Attachments\", \"value\":\"A\"},\r\n    {\"label\":\"Urls\", \"value\":\"U\"},\r\n    {\"label\":\"No urls or attachments\", \"value\":\"N\"}\r\n]",
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ]
+          },
+          {
+            "id": "bd03630e-79c4-473a-9360-a6e941eeb035",
+            "version": "KqlParameterItem/1.0",
+            "name": "AttachmentFilter",
+            "label": "Attachment Filter",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "\"",
+            "delimiter": ",",
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "jsonData": "[\r\n    {\"label\":\"Archive\", \"value\":\"archive\"},\r\n    {\"label\":\"Audio\", \"value\":\"audio\"},\r\n    {\"label\":\"Book\", \"value\":\"book\"},\r\n    {\"label\":\"Code\", \"value\":\"code\"},\r\n    {\"label\":\"Executable\", \"value\":\"exec\"},\r\n    {\"label\":\"Font\", \"value\":\"font\"},\r\n    {\"label\":\"Image\", \"value\":\"image\"},\r\n    {\"label\":\"Excel\", \"value\":\"sheet\"},\r\n    {\"label\":\"Powerpoint\", \"value\":\"slide\"},\r\n    {\"label\":\"Document\", \"value\":\"text\"},\r\n    {\"label\":\"Video\", \"value\":\"video\"},\r\n    {\"label\":\"Web\", \"value\":\"web\"}\r\n]\r\n",
+            "defaultValue": "value::all",
+            "value": [
+              "value::all"
+            ]
+          },
+          {
+            "id": "f9201a7e-37bc-4cc4-970c-effe9d41cca8",
+            "version": "KqlParameterItem/1.0",
+            "name": "SelectedAttachments",
+            "type": 1,
+            "query": "externaldata (Data: dynamic) [@'https://raw.githubusercontent.com/dyne/file-extension-list/refs/heads/master/pub/categories.json'] with (format='multijson', ingestionMapping='[{\"Column\":\"Data\",\"Properties\":{\"Path\":\"$\"}}]')\r\n    | mv-expand Data\r\n    | extend Category=tostring(bag_keys(Data)[0])\r\n    | project Category, FileExtensions = Data[Category]\r\n    | extend FileExtensions = iff(Category==\"exec\", set_union(FileExtensions, dynamic([\"cmd\", \"com\", \"cpl\", \"dll\", \"ex\", \"jse\", \"lnk\",\"msc\", \"ps1\", \"reg\", \"vb\", \"vbe\", \"ws\", \"wsf\"])), FileExtensions)\r\n    | where Category in ({AttachmentFilter})\r\n    | summarize FileExtensions=makeset(FileExtensions, 10000)\r\n    | mv-expand FileExtensions to typeof(string)\r\n    | sort by FileExtensions asc\r\n    | summarize make_list(FileExtensions, 10000)",
+            "isHiddenWhenLocked": true,
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "418f660c-6a51-4817-a93a-7f918fc339b2",
+            "version": "KqlParameterItem/1.0",
+            "name": "FileExtensionText",
+            "type": 1,
+            "isRequired": true,
+            "query": "print iff('{SelectedAttachments}'==\"[]\", \"All\", strcat_array(todynamic('{SelectedAttachments}'), \", \"))",
+            "isHiddenWhenLocked": true,
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "version": "KqlParameterItem/1.0",
+            "name": "FileCategoryText",
+            "type": 1,
+            "isRequired": true,
+            "query": "print iff('{SelectedAttachments}'==\"[]\", \"All\", strcat_array(todynamic('{AttachmentFilter:label}'), \", \"))",
+            "isHiddenWhenLocked": true,
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "id": "13a6dffa-c68c-4cc2-9888-578124d45cba"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 1"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "<h1>📨 Sender Domain Email Monitoring for {SenderDomain}</h1>\r\n<h4>This workbook is designed to investigate emails from a specific domiain that have reached the user's inbox.</h4>"
+      },
+      "name": "text - 6"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "<h3>Attachment File Extensions Filter: {FileCategoryText}</h3>\r\n{FileExtensionText}",
+        "style": "success"
+      },
+      "name": "text - 7"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedFilter = dynamic([{EmailFilter}]);\r\nlet SelectedExtensions = todynamic('{SelectedAttachments}');\r\nEmailEvents\r\n| where SenderFromDomain has '{SenderDomain}'\r\n| where RecipientEmailAddress <> \"8249dc3eca52a56c4407@us1.azure.antigena.com\"\r\n| where RecipientEmailAddress <> \"journal@corespecialty.us2.proofpointarchiving.net\"\r\n| where RecipientEmailAddress <> \"corespecialty.com@journaling.continuity-us2.proofpoint.com\"\r\n| extend FilterColumn=case(AttachmentCount > 0 and UrlCount > 0, \"A U\",\r\n                        AttachmentCount > 0 and UrlCount == 0, \"A\",\r\n                        AttachmentCount == 0 and UrlCount > 0, \"U\",\r\n                        AttachmentCount == 0 and UrlCount == 0, \"N\",\r\n                         \"*\")\r\n| where FilterColumn has_any (SelectedFilter) or SelectedFilter has '*'\r\n| join kind=leftouter (EmailAttachmentInfo\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| summarize AttachedFileExtensions=make_set(FileExtension) by NetworkMessageId) on NetworkMessageId\r\n| where array_length(set_intersect(AttachedFileExtensions, SelectedExtensions)) > 0 or SelectedExtensions == '[]'\r\n| extend RecipientDomain = tostring(split(RecipientEmailAddress, '@')[1])\r\n| summarize count() by SenderFromDomain, bin(TimeGenerated, 1h)\r\n| order by TimeGenerated asc\r\n| render barchart\r\n",
+        "size": 0,
+        "title": "Email Volume - {SenderDomain} ",
+        "noDataMessage": "No emails found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "timeBrushParameterName": "TimeRange",
+        "timeBrushExportOnlyWhenBrushed": true,
+        "showRefreshButton": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "crc_over_time",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedFilter = dynamic([{EmailFilter}]);\r\nlet SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet BaseData = EmailEvents\r\n| where SenderFromDomain has '{SenderDomain}'\r\n| where RecipientEmailAddress <> \"8249dc3eca52a56c4407@us1.azure.antigena.com\"\r\n| where RecipientEmailAddress <> \"journal@corespecialty.us2.proofpointarchiving.net\"\r\n| where RecipientEmailAddress <> \"corespecialty.com@journaling.continuity-us2.proofpoint.com\"\r\n| extend FilterColumn=case(AttachmentCount > 0 and UrlCount > 0, \"A U\",\r\n                        AttachmentCount > 0 and UrlCount == 0, \"A\",\r\n                        AttachmentCount == 0 and UrlCount > 0, \"U\",\r\n                        AttachmentCount == 0 and UrlCount == 0, \"N\",\r\n                         \"*\")\r\n| where FilterColumn has_any (SelectedFilter) or SelectedFilter has '*'\r\n| join kind=leftouter (EmailAttachmentInfo\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| summarize AttachedFileExtensions=make_set(FileExtension) by NetworkMessageId) on NetworkMessageId\r\n| where array_length(set_intersect(AttachedFileExtensions, SelectedExtensions)) > 0 or SelectedExtensions == '[]';\r\nlet BaseDataMessageIds = toscalar(BaseData | summarize make_set(NetworkMessageId));\r\nlet totalinbound = BaseData\r\n| where EmailDirection == \"Inbound\"\r\n| summarize Count = count(), ThreatMessageIds=make_set(NetworkMessageId)\r\n| extend Details = \"Total Inbound Emails\";\r\nlet totalwiththreat = BaseData\r\n| where isnotempty(ThreatTypes) \r\n| summarize Count = count(), NetworkMessageIds=make_set(NetworkMessageId)\r\n| extend Details = \"Total Emails with Threats\";\r\nlet phishingcount = BaseData\r\n| where ThreatTypes has ('Phish')\r\n| summarize Count= count(), NetworkMessageIds=make_set(NetworkMessageId)\r\n| extend Details = \"Emails Detected as Phish\";\r\nlet malwarecount = BaseData\r\n| where ThreatTypes has ('Malware')\r\n| summarize Count= count(), NetworkMessageIds=make_set(NetworkMessageId)\r\n| extend Details = \"Emails Detected as Malware\";\r\nlet spamcount = BaseData\r\n| where ThreatTypes has ('Spam')\r\n| summarize Count= count(), NetworkMessageIds=make_set(NetworkMessageId)\r\n| extend Details = \"Emails Detected as Spam\";\r\nlet zapcount = EmailPostDeliveryEvents\r\n| where NetworkMessageId in (BaseDataMessageIds)\r\n| where ActionResult == \"Success\"\r\n| where ActionType == \"Phish ZAP\" or ActionType == \"Malware ZAP\"\r\n| summarize Count= count(), NetworkMessageIds=make_set(NetworkMessageId)\r\n| extend Details = \"Total Emails Removed by ZAP\";\r\nunion phishingcount, malwarecount, spamcount, totalwiththreat, zapcount\r\n| project Count, Details, NetworkMessageIds\r\n| order by Count desc",
+        "size": 3,
+        "title": "Defender Threat Detection Stats - {SenderDomain}",
+        "noDataMessage": "No emails found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "exportFieldName": "NetworkMessageIds",
+        "exportParameterName": "ThreatMessageIds",
+        "exportDefaultValue": "[]",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 4,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            }
+          ]
+        },
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Details",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Count",
+            "formatter": 4,
+            "formatOptions": {
+              "palette": "greenRed",
+              "compositeBarSettings": {
+                "labelText": "",
+                "columnSettings": [
+                  {
+                    "columnName": "Count",
+                    "color": "lightBlue"
+                  }
+                ]
+              }
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "showBorder": false,
+          "size": "auto"
+        },
+        "chartSettings": {
+          "xAxis": "Count",
+          "createOtherGroup": 0
+        },
+        "mapSettings": {
+          "locInfo": "LatLong",
+          "sizeSettings": "Count",
+          "sizeAggregation": "Sum",
+          "legendMetric": "Count",
+          "legendAggregation": "Sum",
+          "itemColorSettings": {
+            "type": "heatmap",
+            "colorAggregation": "Sum",
+            "nodeColorField": "Count",
+            "heatmapPalette": "greenRed"
+          }
+        }
+      },
+      "name": "detection_stats",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedFilter = dynamic([{EmailFilter}]);\r\nlet SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet BaseData = EmailEvents\r\n| where SenderFromDomain has '{SenderDomain}'\r\n| where RecipientEmailAddress <> \"8249dc3eca52a56c4407@us1.azure.antigena.com\"\r\n| where RecipientEmailAddress <> \"journal@corespecialty.us2.proofpointarchiving.net\"\r\n| where RecipientEmailAddress <> \"corespecialty.com@journaling.continuity-us2.proofpoint.com\"\r\n| extend FilterColumn=case(AttachmentCount > 0 and UrlCount > 0, \"A U\",\r\n                        AttachmentCount > 0 and UrlCount == 0, \"A\",\r\n                        AttachmentCount == 0 and UrlCount > 0, \"U\",\r\n                        AttachmentCount == 0 and UrlCount == 0, \"N\",\r\n                         \"*\")\r\n| where FilterColumn has_any (SelectedFilter) or SelectedFilter has '*'\r\n| join kind=leftouter (EmailAttachmentInfo\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| summarize AttachedFileExtensions=make_set(FileExtension) by NetworkMessageId) on NetworkMessageId\r\n| where array_length(set_intersect(AttachedFileExtensions, SelectedExtensions)) > 0 or SelectedExtensions == '[]';\r\nBaseData\r\n| where isnotempty(ThreatTypes)\r\n| extend ThreatTypes=split(ThreatTypes, ', ')\r\n| summarize EmailCount = dcount(NetworkMessageId), ThreatTypes=make_set(ThreatTypes) by SenderFromAddress\r\n| extend ThreatTypes=strcat_array(ThreatTypes, ', ')\r\n| project SenderFromAddress, ThreatTypes, EmailCount\r\n| sort by EmailCount desc",
+        "size": 0,
+        "title": "Defender Threat Detection by Sender - {SenderDomain}",
+        "noDataMessage": "No emails found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "exportFieldName": "NetworkMessageIds",
+        "exportParameterName": "ThreatMessageIds",
+        "exportDefaultValue": "[]",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Count",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            }
+          ],
+          "rowLimit": 1000,
+          "labelSettings": [
+            {
+              "columnId": "SenderFromAddress",
+              "label": "Sender"
+            },
+            {
+              "columnId": "ThreatTypes",
+              "label": "Threat Type"
+            },
+            {
+              "columnId": "EmailCount",
+              "label": "Email Count"
+            }
+          ]
+        },
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Details",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Count",
+            "formatter": 4,
+            "formatOptions": {
+              "palette": "greenRed",
+              "compositeBarSettings": {
+                "labelText": "",
+                "columnSettings": [
+                  {
+                    "columnName": "Count",
+                    "color": "lightBlue"
+                  }
+                ]
+              }
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "showBorder": false,
+          "size": "auto"
+        },
+        "chartSettings": {
+          "xAxis": "Count",
+          "createOtherGroup": 0
+        },
+        "mapSettings": {
+          "locInfo": "LatLong",
+          "sizeSettings": "Count",
+          "sizeAggregation": "Sum",
+          "legendMetric": "Count",
+          "legendAggregation": "Sum",
+          "itemColorSettings": {
+            "type": "heatmap",
+            "colorAggregation": "Sum",
+            "nodeColorField": "Count",
+            "heatmapPalette": "greenRed"
+          }
+        }
+      },
+      "customWidth": "33",
+      "name": "detection_phish",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedFilter = dynamic([{EmailFilter}]);\r\nlet SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet ThreatMessages = todynamic('{ThreatMessageIds}');\r\nEmailEvents\r\n| where SenderFromDomain has '{SenderDomain}'\r\n| where RecipientEmailAddress <> \"8249dc3eca52a56c4407@us1.azure.antigena.com\"\r\n| where RecipientEmailAddress <> \"journal@corespecialty.us2.proofpointarchiving.net\"\r\n| where RecipientEmailAddress <> \"corespecialty.com@journaling.continuity-us2.proofpoint.com\"\r\n| extend FilterColumn=case(AttachmentCount > 0 and UrlCount > 0, \"A U\",\r\n                        AttachmentCount > 0 and UrlCount == 0, \"A\",\r\n                        AttachmentCount == 0 and UrlCount > 0, \"U\",\r\n                        AttachmentCount == 0 and UrlCount == 0, \"N\",\r\n                         \"*\")\r\n| where FilterColumn has_any (SelectedFilter) or SelectedFilter has '*'\r\n| where NetworkMessageId in (ThreatMessages) or ThreatMessages == '[]'\r\n| join kind=leftouter (EmailAttachmentInfo\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| summarize AttachedFileExtensions=make_set(FileExtension) by NetworkMessageId) on NetworkMessageId\r\n| where array_length(set_intersect(AttachedFileExtensions, SelectedExtensions)) > 0 or SelectedExtensions == '[]'\r\n| summarize EmailCount=dcount(NetworkMessageId) by Sender=SenderFromAddress, Recipient=RecipientEmailAddress\r\n| summarize EmailCount=sum(EmailCount) by Sender\r\n| sort by EmailCount desc",
+        "size": 0,
+        "title": "Email Count by Sender - {SenderDomain}",
+        "noDataMessage": "No emails found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "EmailCount",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "Recipients",
+              "formatter": 5,
+              "formatOptions": {
+                "customColumnWidthSetting": "100ch"
+              }
+            },
+            {
+              "columnMatch": "RecipientCounts",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "NetworkMessageIds",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 10000
+        },
+        "sortBy": []
+      },
+      "customWidth": "33",
+      "name": "senders",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedFilter = dynamic([{EmailFilter}]);\r\nlet SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet ThreatMessages = todynamic('{ThreatMessageIds}');\r\nEmailEvents\r\n| where SenderFromDomain has '{SenderDomain}'\r\n| where RecipientEmailAddress <> \"8249dc3eca52a56c4407@us1.azure.antigena.com\"\r\n| where RecipientEmailAddress <> \"journal@corespecialty.us2.proofpointarchiving.net\"\r\n| where RecipientEmailAddress <> \"corespecialty.com@journaling.continuity-us2.proofpoint.com\"\r\n| extend FilterColumn=case(AttachmentCount > 0 and UrlCount > 0, \"A U\",\r\n                        AttachmentCount > 0 and UrlCount == 0, \"A\",\r\n                        AttachmentCount == 0 and UrlCount > 0, \"U\",\r\n                        AttachmentCount == 0 and UrlCount == 0, \"N\",\r\n                         \"*\")\r\n| where FilterColumn has_any (SelectedFilter) or SelectedFilter has '*'\r\n| where NetworkMessageId in (ThreatMessages) or ThreatMessages == '[]'\r\n| join kind=leftouter (EmailAttachmentInfo\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| summarize AttachedFileExtensions=make_set(FileExtension) by NetworkMessageId) on NetworkMessageId\r\n| where array_length(set_intersect(AttachedFileExtensions, SelectedExtensions)) > 0 or SelectedExtensions == '[]'\r\n| summarize Recipients=makeset(RecipientEmailAddress), RecipientCounts=dcount(RecipientEmailAddress) by Sender=SenderFromAddress\r\n| sort by RecipientCounts desc",
+        "size": 0,
+        "title": "Recipient Count by Sender - {SenderDomain}",
+        "noDataMessage": "No emails found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Recipients",
+              "formatter": 5,
+              "formatOptions": {
+                "customColumnWidthSetting": "100ch"
+              }
+            },
+            {
+              "columnMatch": "RecipientCounts",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "NetworkMessageIds",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 10000
+        },
+        "sortBy": []
+      },
+      "customWidth": "33",
+      "name": "recipients",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedFilter = dynamic([{EmailFilter}]);\r\nlet SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet ThreatMessages = todynamic('{ThreatMessageIds}');\r\nEmailEvents\r\n| where SenderFromDomain has '{SenderDomain}'\r\n| where RecipientEmailAddress <> \"8249dc3eca52a56c4407@us1.azure.antigena.com\"\r\n| where RecipientEmailAddress <> \"journal@corespecialty.us2.proofpointarchiving.net\"\r\n| where RecipientEmailAddress <> \"corespecialty.com@journaling.continuity-us2.proofpoint.com\"\r\n| extend FilterColumn=case(AttachmentCount > 0 and UrlCount > 0, \"A U\",\r\n                        AttachmentCount > 0 and UrlCount == 0, \"A\",\r\n                        AttachmentCount == 0 and UrlCount > 0, \"U\",\r\n                        AttachmentCount == 0 and UrlCount == 0, \"N\",\r\n                         \"*\")\r\n| where FilterColumn has_any (SelectedFilter) or SelectedFilter has '*'\r\n| where NetworkMessageId in (ThreatMessages) or ThreatMessages == '[]'\r\n| join kind=leftouter (EmailAttachmentInfo\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| summarize AttachedFileExtensions=make_set(FileExtension) by NetworkMessageId) on NetworkMessageId\r\n| where array_length(set_intersect(AttachedFileExtensions, SelectedExtensions)) > 0 or SelectedExtensions == '[]'\r\n| summarize\r\n    New=dcountif(NetworkMessageId, Subject !startswith_cs \"RE:\" and Subject !startswith_cs \"FW:\"),\r\n    Forwarded=dcountif(NetworkMessageId, Subject startswith_cs \"FW:\"),\r\n    Replied=dcountif(NetworkMessageId, Subject startswith_cs \"RE:\"),\r\n    TotalEmails=dcount(NetworkMessageId),\r\n    EmailsWithAttachments=countif(AttachmentCount > 0),\r\n    TotalAttachments=sum(AttachmentCount),\r\n    EmailsWithUrls=countif(UrlCount > 0),\r\n    TotalUrls=sum(UrlCount),\r\n    NetworkMessageIds=make_set(NetworkMessageId)\r\n    by Sender=strcat(\"👤\", SenderFromAddress), RecipientEmailAddress, SenderFromAddress\r\n| sort by TotalEmails desc",
+        "size": 2,
+        "title": "Email Sender Stats - {SenderDomain}",
+        "noDataMessage": "No emails found",
+        "noDataMessageStyle": 3,
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "exportFieldName": "",
+        "exportParameterName": "SelectedEmail",
+        "exportDefaultValue": "[]",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Sender",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "SenderFromAddress",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "NetworkMessageIds",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 10000,
+          "filter": true,
+          "hierarchySettings": {
+            "treeType": 1,
+            "groupBy": [
+              "Sender"
+            ]
+          },
+          "labelSettings": [
+            {
+              "columnId": "RecipientEmailAddress",
+              "label": "Recipient"
+            },
+            {
+              "columnId": "TotalEmails",
+              "label": "Total Email Count"
+            },
+            {
+              "columnId": "EmailsWithAttachments",
+              "label": "Emails with Attachments"
+            },
+            {
+              "columnId": "TotalAttachments",
+              "label": "Total Attachment Count"
+            },
+            {
+              "columnId": "EmailsWithUrls",
+              "label": "Emails with Urls"
+            },
+            {
+              "columnId": "TotalUrls",
+              "label": "Total Url Count"
+            }
+          ]
+        },
+        "sortBy": []
+      },
+      "name": "sender_stats",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "7e0ed805-664f-4c85-b496-cf4d07da6af6",
+            "version": "KqlParameterItem/1.0",
+            "name": "SelectedSenderText",
+            "type": 1,
+            "query": "let SelectedEmails = todynamic(replace_strings('{SelectedEmail}', dynamic(['\"[', ']\"']), dynamic([\"[\", \"]\"])));\r\nlet SelectedSender = set_difference(extract_all(@'\"SenderFromAddress\":\"(\\w+@\\w+.\\w+)\"', tostring(SelectedEmails)), dynamic([]));\r\nprint strcat_array(SelectedSender, \", \")",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "version": "KqlParameterItem/1.0",
+            "name": "SelectedRecipientText",
+            "type": 1,
+            "query": "let SelectedEmails = todynamic(replace_strings('{SelectedEmail}', dynamic(['\"[', ']\"']), dynamic([\"[\", \"]\"])));\r\nlet SelectedRecipient = set_difference(extract_all(@'\"RecipientEmailAddress\":\"([\\w|\\.]+@\\w+.\\w+)\"', tostring(SelectedEmails)), dynamic([]));\r\nprint strcat_array(SelectedRecipient, \", \")",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "id": "4f693952-69d9-4a80-9680-84cc999b0e23"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 8"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet ThreatMessages = todynamic('{ThreatMessageIds}');\r\nlet SelectedEmails = todynamic(replace_strings('{SelectedEmail}', dynamic(['\"[', ']\"']), dynamic([\"[\", \"]\"])));\r\nlet SelectedSender = set_difference(extract_all(@'\"SenderFromAddress\":\"(\\w+@\\w+.\\w+)\"', tostring(SelectedEmails)), dynamic([]));\r\nlet SelectedRecipient = set_difference(extract_all(@'\"RecipientEmailAddress\":\"([\\w|\\.]+@\\w+.\\w+)\"', tostring(SelectedEmails)), dynamic([]));\r\nlet SelectedMessageIds = set_difference(extract_all(@'(\\w{8}-\\w{4}-\\w{4}-\\w{4}-\\w{12})', tostring(SelectedEmails)), dynamic([]));\r\nEmailEvents\r\n| where NetworkMessageId in (SelectedMessageIds) and RecipientEmailAddress in (SelectedRecipient)\r\n| project TimeGenerated, SenderFromAddress, RecipientEmailAddress, SubjectText=Subject, Subject = strcat('📧 ', Subject), EmailDirection, DeliveryAction, NetworkMessageId, ParentId='', Id = strcat(NetworkMessageId, '-', RecipientEmailAddress)\r\n| union isfuzzy=true (EmailAttachmentInfo\r\n| where NetworkMessageId in (SelectedMessageIds)\r\n| project NetworkMessageId, FileName, FileType, FileSize\r\n| extend FileExtension = iff(FileName has '.', tostring(split(FileName, '.')[-1]), \"\")\r\n| extend FileExtension = coalesce(FileType, FileExtension, \"unknown\")\r\n| where FileExtension in (SelectedExtensions) or SelectedExtensions == '[]'\r\n| where NetworkMessageId in (ThreatMessages) or ThreatMessages == '[]'\r\n| lookup (EmailEvents | where NetworkMessageId in (SelectedMessageIds) | project NetworkMessageId, SenderFromAddress, RecipientEmailAddress) on NetworkMessageId\r\n| where RecipientEmailAddress  in (SelectedRecipient)\r\n| extend ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress), Id = tostring(new_guid()), Subject='📎 Attachment')\r\n| union isfuzzy=true (EmailUrlInfo\r\n| where NetworkMessageId in (SelectedMessageIds)\r\n| project NetworkMessageId, UrlDomain, UrlLocation, Url\r\n| lookup (EmailEvents | where NetworkMessageId in (SelectedMessageIds) | project NetworkMessageId, SenderFromAddress, RecipientEmailAddress) on NetworkMessageId\r\n| where RecipientEmailAddress in (SelectedRecipient)\r\n| extend ParentId=strcat(NetworkMessageId, '-', RecipientEmailAddress), Id = tostring(new_guid()), Subject='🔗 URL')\r\n| project TimeGenerated, SenderFromAddress, RecipientEmailAddress, Subject, DeliveryAction, FileName, FileType, FileSize, UrlDomain, UrlLocation, Url, NetworkMessageId, ParentId, Id, SubjectText\r\n| sort by TimeGenerated asc\r\n",
+        "size": 0,
+        "title": "Email Sender Drilldown - Sender: {SelectedSenderText}  ||  Recipients: {SelectedRecipientText}",
+        "noDataMessage": "Please select a sender or recipient above to drilldown",
+        "timeContextFromParameter": "TimeRange",
+        "showRefreshButton": true,
+        "exportParameterName": "EmailDrilldownSelection",
+        "exportDefaultValue": "[]",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "FileSize",
+              "formatter": 0,
+              "numberFormat": {
+                "unit": 2,
+                "options": {
+                  "style": "decimal",
+                  "maximumFractionDigits": 2
+                }
+              }
+            },
+            {
+              "columnMatch": "Id",
+              "formatter": 5
+            },
+            {
+              "columnMatch": "ParentId",
+              "formatter": 5
+            }
+          ],
+          "rowLimit": 10000,
+          "hierarchySettings": {
+            "idColumn": "Id",
+            "parentColumn": "ParentId",
+            "treeType": 0,
+            "expanderColumn": "Subject"
+          },
+          "sortBy": [
+            {
+              "itemKey": "Subject",
+              "sortOrder": 1
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "TimeGenerated",
+              "label": "Sent Time"
+            },
+            {
+              "columnId": "SenderFromAddress",
+              "label": "Sender"
+            },
+            {
+              "columnId": "RecipientEmailAddress",
+              "label": "Recipient"
+            },
+            {
+              "columnId": "DeliveryAction",
+              "label": "Delivery Action"
+            },
+            {
+              "columnId": "FileName",
+              "label": "File Name"
+            },
+            {
+              "columnId": "FileType",
+              "label": "File Type"
+            },
+            {
+              "columnId": "FileSize",
+              "label": "File Size"
+            },
+            {
+              "columnId": "UrlDomain",
+              "label": "Url Domain"
+            },
+            {
+              "columnId": "UrlLocation",
+              "label": "Url Location"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "Subject",
+            "sortOrder": 1
+          }
+        ]
+      },
+      "name": "sender_drilldown",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "4358242a-fd3a-434d-b671-fa19e74a338f",
+            "version": "KqlParameterItem/1.0",
+            "name": "EmailDrilldownSender",
+            "type": 1,
+            "query": "print parse_json('{EmailDrilldownSelection}').SenderFromAddress",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "version": "KqlParameterItem/1.0",
+            "name": "EmailDrilldownRecipient",
+            "type": 1,
+            "query": "print parse_json('{EmailDrilldownSelection}').RecipientEmailAddress",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "id": "6ad964c0-259f-46ea-bc2b-994789706752"
+          },
+          {
+            "version": "KqlParameterItem/1.0",
+            "name": "EmailDrilldownMessageId",
+            "type": 1,
+            "query": "print parse_json('{EmailDrilldownSelection}').NetworkMessageId",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "id": "308f6cd0-df49-4fc2-8b0e-5421026d7a6b"
+          },
+          {
+            "version": "KqlParameterItem/1.0",
+            "name": "EmailDrilldownSubject",
+            "type": 1,
+            "query": "print parse_json('{EmailDrilldownSelection}').SubjectText",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "id": "aef18416-9832-4226-b061-6740ed8e5973"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 10"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let SelectedExtensions = todynamic('{SelectedAttachments}');\r\nlet ThreatMessages = todynamic('{ThreatMessageIds}');\r\nlet MessageId = iff(isnotempty('{EmailDrilldownMessageId}'), '{EmailDrilldownMessageId}', '');\r\nlet FileCreatedEvents = DeviceFileEvents \r\n    | where ActionType == \"FileCreated\" \r\n    | summarize\r\n        by\r\n        FileCreatedTime=bin(TimeGenerated, 5s),\r\n        AccountName=InitiatingProcessAccountName,\r\n        DeviceName,\r\n        FileName,\r\n        FolderPath,\r\n        FileSize,\r\n        FileOriginUrl,\r\n        FileOriginReferrerUrl,\r\n        FileOriginIP,\r\n        SHA256;\r\nEmailAttachmentInfo \r\n| where NetworkMessageId == '{EmailDrilldownMessageId}' and isnotempty('{EmailDrilldownMessageId}')\r\n| project\r\n    EmailReceivedTime=TimeGenerated,\r\n    Attackment=FileName,\r\n    FileType,\r\n    FileSize,\r\n    RecipientEmailAddress=tolower(RecipientEmailAddress),\r\n    SHA256\r\n| extend EmailAccountName = tostring(split(RecipientEmailAddress, '@')[0])\r\n| join kind=leftouter FileCreatedEvents on SHA256, $left.RecipientEmailAddress == $right.AccountName\r\n| join kind=leftouter FileCreatedEvents on SHA256, $left.EmailAccountName == $right.AccountName\r\n| project \r\n    EmailReceivedTime,\r\n    Attackment,\r\n    FileType,\r\n    FileSize,\r\n    RecipientEmailAddress,\r\n    SHA256,\r\n    FileCreatedTime=coalesce(FileCreatedTime, FileCreatedTime1),\r\n    DeviceName=coalesce(DeviceName, DeviceName1),\r\n    FileName=coalesce(FileName, FileName1),\r\n    FolderPath=coalesce(FolderPath,FolderPath1)\r\n| where FileCreatedTime > EmailReceivedTime or isempty(FileCreatedTime) \r\n| extend AttachmentAction = case(isempty(FileCreatedTime), \"🔵 None Detected\", FolderPath has @'\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.Outlook\\', \"👀 Viewed\", \"⬇️ Downloaded\")\r\n| project \r\n    EmailReceivedTime,\r\n    RecipientEmailAddress=strcat('👤 ', RecipientEmailAddress),\r\n    Attackment=strcat('📎 ', Attackment),\r\n    FileType,\r\n    FileSize,\r\n    AttachmentAction,\r\n    DeviceName=iff(isnotempty(DeviceName), strcat('💻 ', DeviceName), ''),\r\n    FileCreatedTime,\r\n    FileName=iff(isnotempty(FileName), strcat('🗋 ', FileName), ''),\r\n    FolderPath=iff(isnotempty(FolderPath), strcat('📂 ', FolderPath), ''),\r\n    SHA256",
+        "size": 0,
+        "title": "Email TTP Drilldown - Sender: {EmailDrilldownSender}  ||  Recipients: {EmailDrilldownRecipient}  ||  Subject: {EmailDrilldownSubject}",
+        "noDataMessage": "Please select an email subject above to drilldown",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "FileSize",
+              "formatter": 0,
+              "numberFormat": {
+                "unit": 2,
+                "options": {
+                  "style": "decimal",
+                  "maximumFractionDigits": 2
+                }
+              }
+            }
+          ],
+          "rowLimit": 10000,
+          "filter": true,
+          "sortBy": [
+            {
+              "itemKey": "AttachmentAction",
+              "sortOrder": 1
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "EmailReceivedTime",
+              "label": "Email Received TIme"
+            },
+            {
+              "columnId": "RecipientEmailAddress",
+              "label": "Recipient"
+            },
+            {
+              "columnId": "FileType",
+              "label": "File Type"
+            },
+            {
+              "columnId": "FileSize",
+              "label": "File Size"
+            },
+            {
+              "columnId": "AttachmentAction",
+              "label": "Attachment Action"
+            },
+            {
+              "columnId": "DeviceName",
+              "label": "Device Name"
+            },
+            {
+              "columnId": "FileCreatedTime",
+              "label": "File Created Time"
+            },
+            {
+              "columnId": "FileName",
+              "label": "File Name"
+            },
+            {
+              "columnId": "FolderPath",
+              "label": "Folder Path"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "AttachmentAction",
+            "sortOrder": 1
+          }
+        ]
+      },
+      "name": "email_drilldown",
+      "styleSettings": {
+        "showBorder": true
+      }
+    }
+  ],
+  "fallbackResourceIds": [
+    ""
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
